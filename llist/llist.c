@@ -181,5 +181,3 @@ int set_llist_object(s_llist* p, void* object)
     p->object = object;
     return 0;
 }
-
-
