@@ -116,7 +116,10 @@ s_llist* rm_llist(s_llist* p)
 		if	(_next != NULL)		_next->prev=_prev;
 		if	(_prev != NULL)		_prev->next=_next;
 
-		if	(p->object != NULL)	free(p->object);
+		if	(p->object != NULL)
+		{
+			if(p->type == LLIST_TYPE_TOGETHER)	free(p->object);
+		}
 
 		free(p);
 		if		(_next != NULL)	return _next;
@@ -172,12 +175,13 @@ void* get_llist_object(s_llist* p)
     return p->object;
 }
 
-int set_llist_object(s_llist* p, void* object)
+int set_llist_object(s_llist* p, void* object, e_llist_type type)
 {
     if(p==NULL)
     {
         return -1;
     }
     p->object = object;
+	p->type = type;
     return 0;
 }
