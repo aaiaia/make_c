@@ -21,11 +21,12 @@ INCLUDE = -I./
 SRC_DIR = ./
 
 # 오브젝트 파일 디렉토리
-OBJ_DIR = ./obj
+#OBJ_DIR = ./obj
+#OBJ_DIR = ./
 
 # 생성하고자 하는 실행 파일 이름
 #TARGET = main
-TARGET = test_llist 
+TARGET = c_lib
 
 # Make 할 소스 파일들
 # wildcard 로 SRC_DIR 에서 *.cc 로 된 파일들 목록을 뽑아낸 뒤에
@@ -33,32 +34,84 @@ TARGET = test_llist
 # (e.g SRCS 는 foo.cc bar.cc main.cc 가 된다.)
 #SRCS = $(notdir $(wildcard $(SRC_DIR)/*.cc))
 SRCS = $(notdir $(wildcard $(SRC_DIR)/*.$(SOURCE_FILE_EXT)))
+$(info =============================================================)
+$(info SRCS = ${SRCS})
+$(info =============================================================)
+$(info )
 
 #OBJS = $(SRCS:.cc=.o)
 #DEPS = $(SRCS:.cc=.d)
 OBJS = $(SRCS:.$(SOURCE_FILE_EXT)=.o)
+$(info =============================================================)
+$(info OBJS = ${OBJS})
+$(info =============================================================)
+$(info )
 DEPS = $(SRCS:.$(SOURCE_FILE_EXT)=.d)
-
+$(info =============================================================)
+$(info DEPS = ${DEPS})
+$(info =============================================================)
+$(info )
 
 # OBJS 안의 object 파일들 이름 앞에 $(OBJ_DIR)/ 을 붙인다.
-OBJECTS = $(patsubst %.o,$(OBJ_DIR)/%.o,$(OBJS))
+#OBJECTS = $(patsubst %.o,$(OBJ_DIR)/%.o,$(OBJS))
+OBJECTS = ${OBJS}
+$(info =============================================================)
+$(info OBJECTS = ${OBJECTS})
+$(info =============================================================)
+$(info )
 DEPS = $(OBJECTS:.o=.d)
+$(info =============================================================)
+$(info DEPS = ${DEPS})
+$(info =============================================================)
+$(info )
 
-all: test_llist
+#all: $(TARGET)
 
-#$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cc
-$(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT)
-	mkdir $(OBJ_DIR) 2> /dev/null || true
+#$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cc	# for C++
+(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT)
+	@echo "============================================================"
+	$(info $(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT))
+	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
+	@echo "============================================================"
+	@echo "= Compiling $@"
+	@echo "============================================================"
 	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@ -MD $(LDFLAGS)
-	#$(CC) $(CXXFLAGS) $(INCLUDE) -c $< -o $@ -MD $(LDFLAGS)
+#	$(CC) $(CXXFLAGS) $(INCLUDE) -c $< -o $@ -MD $(LDFLAGS)	# for C++
+	@echo "============================================================"
+	@echo ""
 
-$(TARGET) : $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
-	#$(CC) $(CXXFLAGS) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
+test/test_stack.o : test/test_stack.c $(OBJECTS)
+	@echo "============================================================"
+	$(info $(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT))
+	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
+	@echo "============================================================"
+	@echo "= Compiling $@"
+	@echo "============================================================"
+	$(CC) $(CFLAGS) $(INCLUDE) -c test/test_stack.c -o $@ -MD $(LDFLAGS)
+	@echo "============================================================"
+	@echo ""
 
-.PHONY: clean all
+#$(TARGET) : $(OBJECTS)
+#	$(CC) $(CFLAGS) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
+#	$(CC) $(CXXFLAGS) $(OBJECTS) -o $(TARGET) $(LDFLAGS)	# for C++
+
+test_stack : $(OBJECTS) test/test_stack.o 
+	@echo "============================================================"
+	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
+	@echo "============================================================"
+	@echo "= Linking $@"
+	@echo "============================================================"
+	$(CC) $(CFLAGS) $(OBJECTS) test/test_stack.o -o test/test_stack $(LDFLAGS)
+	@echo "============================================================"
+	@echo ""
+
+clean_stack:
+	rm -f ./test/test_stack ./test/test_stack.o ./test/test_stack.d
+	rm -f $(OBJECTS) $(DEPS) $(TARGET)
+
 clean:
 	rm -f $(OBJECTS) $(DEPS) $(TARGET)
+#	rmdir $(OBJ_DIR)
 
 -include $(DEPS)
 
