@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "llist.h"
+#include "../llist.h"
 
 void _PRINT_S(s_llist* _s)
 {
