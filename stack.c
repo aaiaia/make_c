@@ -10,13 +10,13 @@ s_stack_data* make_stack(void)
     p->root = (s_llist*)NULL;
     return p;
 }
-void init_stack(s_stack_data* p)
+int init_stack(s_stack_data* p)
 { 
     if(p == NULL)
     {
-        return;
+        return -1;
     }
-    return;
+    return 0;
 }
 
 void* pop_stack(s_stack_data* p)
@@ -44,5 +44,5 @@ void push_stack(s_stack_data* p, void* object)
     {
         p->root = mk_llist(p->root, LLIST_DIR_LEFT);
     }
-    set_llist_object(p, object);
+    set_llist_object(p->root, object, LLIST_TYPE_SEPERATE);
 }
