@@ -5,7 +5,7 @@
 void _PRINT_LLIST_S(s_llist* _s)
 {
 	{
-		if(_s!=NULL)	printf("prev=0x%08x, loc=0x%08x, next=0x%08x\r\n",_s->prev , _s, _s->next);
+		if(_s!=NULL)	printf("prev=0x%08x, loc=0x%08x, obj_addr:0x%08x(%8u), next=0x%08x\r\n",_s->prev , _s, _s->object, (unsigned int)_s->object, _s->next);
 		else		printf("Empty\r\n");
 	}
 }
