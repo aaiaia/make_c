@@ -11,7 +11,6 @@ s_queue* make_queue(void)
 	queue = (s_queue*)calloc(1, sizeof(s_queue));
 	queue->in		= (s_llist*)NULL;
 	queue->out		= (s_llist*)NULL;
-	queue->status	= Q_EMPTY;
 
 	return queue;
 }
