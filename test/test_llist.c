@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "../llist.h"
 
-#include "llist_test.Lib.h"
+#include "testLib_llist.h"
 
 int main(int argc, char** argv)
 {
