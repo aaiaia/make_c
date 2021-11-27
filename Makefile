@@ -80,7 +80,29 @@ $(info )
 	@echo "============================================================"
 	@echo ""
 
-test/test_stack.o : test/test_stack.c $(OBJECTS)
+test/testLib_llist.o :  $(OBJECTS) test/testLib_llist.c
+	@echo "============================================================"
+	$(info $(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT))
+	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
+	@echo "============================================================"
+	@echo "= Compiling $@"
+	@echo "============================================================"
+	$(CC) $(CFLAGS) $(INCLUDE) -c test/testLib_llist.c -o $@ -MD $(LDFLAGS)
+	@echo "============================================================"
+	@echo ""
+
+test/test_llist.o : $(OBJECTS) test/testLib_llist.o test/test_llist.c
+	@echo "============================================================"
+	$(info $(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT))
+	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
+	@echo "============================================================"
+	@echo "= Compiling $@"
+	@echo "============================================================"
+	$(CC) $(CFLAGS) $(INCLUDE) -c test/test_llist.c -o $@ -MD $(LDFLAGS)
+	@echo "============================================================"
+	@echo ""
+
+test/test_stack.o : $(OBJECTS) test/testLib_llist.o test/test_stack.c
 	@echo "============================================================"
 	$(info $(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT))
 	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
@@ -95,19 +117,38 @@ test/test_stack.o : test/test_stack.c $(OBJECTS)
 #	$(CC) $(CFLAGS) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
 #	$(CC) $(CXXFLAGS) $(OBJECTS) -o $(TARGET) $(LDFLAGS)	# for C++
 
-test_stack : $(OBJECTS) test/test_stack.o 
+test_llist : $(OBJECTS) test/testLib_llist.o test/test_llist.o
 	@echo "============================================================"
 	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
 	@echo "============================================================"
 	@echo "= Linking $@"
 	@echo "============================================================"
-	$(CC) $(CFLAGS) $(OBJECTS) test/test_stack.o -o test/test_stack $(LDFLAGS)
+	$(CC) $(CFLAGS) $(OBJECTS) test/testLib_llist.o test/test_llist.o -o test/test_llist $(LDFLAGS)
 	@echo "============================================================"
 	@echo ""
 
+test_stack : $(OBJECTS) test/testLib_llist.o test/test_stack.o
+	@echo "============================================================"
+	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
+	@echo "============================================================"
+	@echo "= Linking $@"
+	@echo "============================================================"
+	$(CC) $(CFLAGS) $(OBJECTS) test/testLib_llist.o test/test_stack.o -o test/test_stack $(LDFLAGS)
+	@echo "============================================================"
+	@echo ""
+
+clean_llist:
+	rm -f ./test/testLib_llist.o ./test/testLib_llist.d
+	rm -f ./test/test_llist ./test/test_llist.o ./test/test_llist.d
+
 clean_stack:
+	rm -f ./test/testLib_llist.o ./test/testLib_llist.d
 	rm -f ./test/test_stack ./test/test_stack.o ./test/test_stack.d
-	rm -f $(OBJECTS) $(DEPS) $(TARGET)
+
+clean_test:
+	make clean_llist
+	make clean_stack
+	make clean
 
 clean:
 	rm -f $(OBJECTS) $(DEPS) $(TARGET)

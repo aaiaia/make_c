@@ -9,7 +9,7 @@ struct stack_data
 typedef struct stack_data s_stack_data;
 
 s_stack_data* make_stack(void);
-void init_stack(s_stack_data* root);
+int init_stack(s_stack_data* root);
 void* pop_stack(s_stack_data* p);
 void push_stack(s_stack_data* p, void* object);
 #endif
