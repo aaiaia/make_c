@@ -43,14 +43,16 @@ int main(int argc, char* argv[])
 
 	printf("\n\n");
 
+	_PRINT_LLIST_LIST("[START LIST] push, obj_add=100~199\r\n", test->root);
 	for(unsigned int i=100; i<200; i++)
 	{
 		push_stack(test, (void*)i);
 	}
-	_PRINT_LLIST_LIST("[START LIST] push, 100~199\r\n", test->root);
+	_PRINT_LLIST_LIST("[END LIST] push, obj_add=100~199\r\n", test->root);
 
 	printf("\n\n");
 
+	_PRINT_LLIST_LIST("[START LIST] pop count 102\r\n", test->root);
 	for(unsigned int i=0; i<102; i++)
 	{
 		printf("pop %u\n", (unsigned int)pop_stack(test));
