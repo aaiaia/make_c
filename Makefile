@@ -158,6 +158,11 @@ test_queue : $(OBJECTS) test/testLib_llist.o test/test_queue.o
 	@echo "============================================================"
 	@echo ""
 
+test : test_llist test_stack test_queue
+	make test_llist
+	make test_stack
+	make test_queue
+
 clean_llist:
 	rm -f ./test/testLib_llist.o ./test/testLib_llist.d
 	rm -f ./test/test_llist ./test/test_llist.o ./test/test_llist.d
