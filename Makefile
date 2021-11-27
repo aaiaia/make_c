@@ -140,12 +140,15 @@ test_stack : $(OBJECTS) test/testLib_llist.o test/test_stack.o
 clean_llist:
 	rm -f ./test/testLib_llist.o ./test/testLib_llist.d
 	rm -f ./test/test_llist ./test/test_llist.o ./test/test_llist.d
-	rm -f $(OBJECTS) $(DEPS) $(TARGET)
 
 clean_stack:
 	rm -f ./test/testLib_llist.o ./test/testLib_llist.d
 	rm -f ./test/test_stack ./test/test_stack.o ./test/test_stack.d
-	rm -f $(OBJECTS) $(DEPS) $(TARGET)
+
+clean_test:
+	make clean_llist
+	make clean_stack
+	make clean
 
 clean:
 	rm -f $(OBJECTS) $(DEPS) $(TARGET)
