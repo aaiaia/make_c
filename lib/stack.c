@@ -44,5 +44,5 @@ void push_stack(s_stack_data* p, void* object)
     {
         p->root = mk_llist(p->root, LLIST_DIR_LEFT);
     }
-    set_llist_object(p->root, object, LLIST_TYPE_SEPERATE);
+    set_llist_object(p->root, object, NULL, LLIST_TYPE_SEPERATE);
 }
