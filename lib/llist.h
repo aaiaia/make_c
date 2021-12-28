@@ -23,6 +23,9 @@ struct linked_list
 	struct linked_list*		next;
 	enum linked_list_type	type;
 	void*					object;
+	void					(*fp_rmObj)(void** p);
+	void*					info;
+	void					(*fp_rmInfo)(void** p)
 };
 typedef struct linked_list s_llist;
 
@@ -33,5 +36,7 @@ s_llist* mk_llist(s_llist* p, e_llist_dir dir);
 s_llist* rm_llist(s_llist* p);
 s_llist* find_llist_end(s_llist* p, e_llist_dir dir);
 void* get_llist_object(s_llist* p);
-int set_llist_object(s_llist* p, void* object, e_llist_type type);
+void* get_llist_info(s_llist* p);
+int set_llist_object(s_llist* p, void* object, void* fp_rmObj, e_llist_type type);
+int set_llist_info(s_llist* p, void* info, void* fp_rmInfo);
 #endif

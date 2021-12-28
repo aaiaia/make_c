@@ -8,9 +8,6 @@ s_llist* open_llist(void)
 {
 	s_llist* p = (s_llist*)calloc(1, sizeof(s_llist));
 	memset(p, 0u, sizeof(s_llist));
-	p->prev = NULL;
-	p->next = NULL;
-	p->object = NULL;
 	return p;
 }
 
@@ -26,18 +23,19 @@ s_llist* close_llist(s_llist* p)
 		while(_p_tg != NULL)
 		{
 			_p_tmp = _p_tg->prev;
-			free(_p_tg);
+			rm_llist(_p_tg);
 			_p_tg = _p_tmp;
 		}
-
 		/* Remove next side llist */
 		_p_tg = p->next;
 		while(_p_tg != NULL)
 		{
 			_p_tmp = _p_tg->next;
-			free(_p_tg);
+			rm_llist(_p_tg);
 			_p_tg = _p_tmp;
 		}
+		/* Remove center llist */
+		rm_llist(p);
 	}
 	else
 	{
@@ -53,7 +51,7 @@ s_llist* mk_llist(s_llist* p, e_llist_dir dir)
 	s_llist* _p_tmp;
 	if(p == NULL)
 	{
-		return NULL;
+		return open_llist();
 	}
 	else
 	{
@@ -62,7 +60,6 @@ s_llist* mk_llist(s_llist* p, e_llist_dir dir)
 			case LLIST_DIR_PREV:
 			{
 				_p_new = open_llist();
-
 				_p_tmp = p->prev;
 
 				//link new and cur
@@ -80,7 +77,6 @@ s_llist* mk_llist(s_llist* p, e_llist_dir dir)
 			case LLIST_DIR_NEXT:
 			{
 				_p_new = open_llist();
-
 				_p_tmp = p->next;
 
 				//link new and cur
@@ -113,15 +109,32 @@ s_llist* rm_llist(s_llist* p)
 		_next = p->next;
 		_prev = p->prev;
 
+		/* Linking next and prev side */
 		if	(_next != NULL)		_next->prev=_prev;
 		if	(_prev != NULL)		_prev->next=_next;
 
+		/* Remove object */
 		if	(p->object != NULL)
 		{
-			if(p->type == LLIST_TYPE_TOGETHER)	free(p->object);
+			switch(p->type)
+			{
+				case LLIST_TYPE_TOGETHER:
+					p->fp_rmObj(&(p->object));
+					break;
+				case LLIST_TYPE_SEPERATE:
+					break;
+				default:
+					break;
+			}
 		}
-
+		/* Remove info */
+		if	(p->info != NULL)
+		{
+			p->fp_rmInfo(&(p->info));
+		}
+		/* Remove s_llist */
 		free(p);
+		/* Set return value */
 		if		(_next != NULL)	return _next;
 		else if	(_prev != NULL)	return _prev;
 		else					return NULL;
@@ -175,13 +188,34 @@ void* get_llist_object(s_llist* p)
     return p->object;
 }
 
-int set_llist_object(s_llist* p, void* object, e_llist_type type)
+void* get_llist_info(s_llist* p)
+{
+    if(p==NULL)
+    {
+        return NULL;
+    }
+    return p->info;
+}
+
+int set_llist_object(s_llist* p, void* object, void* fp_rmObj, e_llist_type type)
 {
     if(p==NULL)
     {
         return -1;
     }
     p->object = object;
+	p->fp_rmObj = fp_rmObj;
 	p->type = type;
+    return 0;
+}
+
+int set_llist_info(s_llist* p, void* info, void* fp_rmInfo)
+{
+    if(p==NULL)
+    {
+        return -1;
+    }
+    p->info = info;
+	p->fp_rmInfo = fp_rmInfo;
     return 0;
 }

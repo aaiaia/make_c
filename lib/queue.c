@@ -41,7 +41,7 @@ int put_queue(s_queue* queue, void* object)
 	{
 		queue->in = mk_llist(queue->in, LLIST_DIR_LEFT);
 	}
-	set_llist_object(queue->in, object, LLIST_TYPE_SEPERATE);
+	set_llist_object(queue->in, object, NULL, LLIST_TYPE_SEPERATE);
 
 	return 0;
 }
