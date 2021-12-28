@@ -2,30 +2,30 @@
 #define _LLIST_H_
 enum linked_list_direction
 {
-	LLIST_DIR_DEFAULT,
-	LLIST_DIR_PREV,
-	LLIST_DIR_NEXT
+    LLIST_DIR_DEFAULT,
+    LLIST_DIR_PREV,
+    LLIST_DIR_NEXT
 };
 typedef enum linked_list_direction e_llist_dir;
-#define LLIST_DIR_LEFT	LLIST_DIR_PREV
-#define LLIST_DIR_RIGHT	LLIST_DIR_NEXT
+#define LLIST_DIR_LEFT  LLIST_DIR_PREV
+#define LLIST_DIR_RIGHT LLIST_DIR_NEXT
 
 enum linked_list_type
 {
-	LLIST_TYPE_TOGETHER,
-	LLIST_TYPE_SEPERATE
+    LLIST_TYPE_TOGETHER,
+    LLIST_TYPE_SEPERATE
 };
 typedef enum linked_list_type e_llist_type;
 
 struct linked_list
 {
-	struct linked_list*		prev;
-	struct linked_list*		next;
-	enum linked_list_type	type;
-	void*					object;
-	void					(*fp_rmObj)(void** p);
-	void*					info;
-	void					(*fp_rmInfo)(void** p)
+    struct linked_list*     prev;
+    struct linked_list*     next;
+    enum linked_list_type   type;
+    void*                   object;
+    void                    (*fp_rmObj)(void** p);
+    void*                   info;
+    void                    (*fp_rmInfo)(void** p)
 };
 typedef struct linked_list s_llist;
 
