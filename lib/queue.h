@@ -5,8 +5,8 @@
 
 struct queue
 {
-	s_llist *out;
-	s_llist *in;
+    s_llist *out;
+    s_llist *in;
 };
 typedef struct queue s_queue;
 
