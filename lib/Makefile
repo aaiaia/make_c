@@ -18,11 +18,11 @@ INCLUDE = -I./
 
 # 소스 파일 디렉토리
 #SRC_DIR = ./src
-SRC_DIR = ./
+SRC_DIR = .
 
 # 오브젝트 파일 디렉토리
 #OBJ_DIR = ./obj
-#OBJ_DIR = ./
+OBJ_DIR = .
 
 # 생성하고자 하는 실행 파일 이름
 #TARGET = main
@@ -34,8 +34,10 @@ TARGET = c_lib
 # (e.g SRCS 는 foo.cc bar.cc main.cc 가 된다.)
 #SRCS = $(notdir $(wildcard $(SRC_DIR)/*.cc))
 SRCS = $(notdir $(wildcard $(SRC_DIR)/*.$(SOURCE_FILE_EXT)))
+SRCS_PARSE_USING_SHELL_CMD = $(shell find -L ${SRC_DIR} -type f \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.s" \) )
 $(info =============================================================)
 $(info SRCS = ${SRCS})
+$(info SRCS_PARSE_USING_SHELL_CMD = ${SRCS_PARSE_USING_SHELL_CMD})
 $(info =============================================================)
 $(info )
 
@@ -68,59 +70,49 @@ $(info )
 #all: $(TARGET)
 
 #$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cc	# for C++
-(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT)
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT)
 	@echo "============================================================"
-	$(info $(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT))
-	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
+	@echo "TEST PRINT($$ @), $@"
+	@echo "TEST PRINT($$^), $^"
+	@echo "TEST PRINT($$<), $<"
+	@echo "info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS}"
 	@echo "============================================================"
 	@echo "= Compiling $@"
 	@echo "============================================================"
-	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@ -MD $(LDFLAGS)
-#	$(CC) $(CXXFLAGS) $(INCLUDE) -c $< -o $@ -MD $(LDFLAGS)	# for C++
+	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@ -MMD $(LDFLAGS)
+#	$(CC) $(CXXFLAGS) $(INCLUDE) -c $< -o $@ -MMD $(LDFLAGS)	# for C++
 	@echo "============================================================"
 	@echo ""
 
 test/testLib_llist.o :  $(OBJECTS) test/testLib_llist.c
 	@echo "============================================================"
-	$(info $(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT))
-	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
-	@echo "============================================================"
 	@echo "= Compiling $@"
 	@echo "============================================================"
-	$(CC) $(CFLAGS) $(INCLUDE) -c test/testLib_llist.c -o $@ -MD $(LDFLAGS)
+	$(CC) $(CFLAGS) $(INCLUDE) -c test/testLib_llist.c -o $@ -MMD $(LDFLAGS)
 	@echo "============================================================"
 	@echo ""
 
 test/test_llist.o : $(OBJECTS) test/testLib_llist.o test/test_llist.c
 	@echo "============================================================"
-	$(info $(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT))
-	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
-	@echo "============================================================"
 	@echo "= Compiling $@"
 	@echo "============================================================"
-	$(CC) $(CFLAGS) $(INCLUDE) -c test/test_llist.c -o $@ -MD $(LDFLAGS)
+	$(CC) $(CFLAGS) $(INCLUDE) -c test/test_llist.c -o $@ -MMD $(LDFLAGS)
 	@echo "============================================================"
 	@echo ""
 
 test/test_stack.o : $(OBJECTS) test/testLib_llist.o test/test_stack.c
 	@echo "============================================================"
-	$(info $(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT))
-	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
-	@echo "============================================================"
 	@echo "= Compiling $@"
 	@echo "============================================================"
-	$(CC) $(CFLAGS) $(INCLUDE) -c test/test_stack.c -o $@ -MD $(LDFLAGS)
+	$(CC) $(CFLAGS) $(INCLUDE) -c test/test_stack.c -o $@ -MMD $(LDFLAGS)
 	@echo "============================================================"
 	@echo ""
 
 test/test_queue.o : $(OBJECTS) test/testLib_llist.o test/test_queue.c
 	@echo "============================================================"
-	$(info $(OBJ_DIR)/%.o : $(SRC_DIR)/%.$(SOURCE_FILE_EXT))
-	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
-	@echo "============================================================"
 	@echo "= Compiling $@"
 	@echo "============================================================"
-	$(CC) $(CFLAGS) $(INCLUDE) -c test/test_queue.c -o $@ -MD $(LDFLAGS)
+	$(CC) $(CFLAGS) $(INCLUDE) -c test/test_queue.c -o $@ -MMD $(LDFLAGS)
 	@echo "============================================================"
 	@echo ""
 
@@ -130,8 +122,6 @@ test/test_queue.o : $(OBJECTS) test/testLib_llist.o test/test_queue.c
 
 test_llist : $(OBJECTS) test/testLib_llist.o test/test_llist.o
 	@echo "============================================================"
-	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
-	@echo "============================================================"
 	@echo "= Linking $@"
 	@echo "============================================================"
 	$(CC) $(CFLAGS) $(OBJECTS) test/testLib_llist.o test/test_llist.o -o test/test_llist $(LDFLAGS)
@@ -140,8 +130,6 @@ test_llist : $(OBJECTS) test/testLib_llist.o test/test_llist.o
 
 test_stack : $(OBJECTS) test/testLib_llist.o test/test_stack.o
 	@echo "============================================================"
-	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
-	@echo "============================================================"
 	@echo "= Linking $@"
 	@echo "============================================================"
 	$(CC) $(CFLAGS) $(OBJECTS) test/testLib_llist.o test/test_stack.o -o test/test_stack $(LDFLAGS)
@@ -149,8 +137,6 @@ test_stack : $(OBJECTS) test/testLib_llist.o test/test_stack.o
 	@echo ""
 
 test_queue : $(OBJECTS) test/testLib_llist.o test/test_queue.o
-	@echo "============================================================"
-	$(info src: ${SRCS}, obj: ${OBJS}, dep: ${DEPS})
 	@echo "============================================================"
 	@echo "= Linking $@"
 	@echo "============================================================"
@@ -185,5 +171,8 @@ clean:
 	rm -f $(OBJECTS) $(DEPS) $(TARGET)
 #	rmdir $(OBJ_DIR)
 
+ifneq ($(MAKECMDGOALS), clean)
+ifneq ($(SRCS),)
 -include $(DEPS)
-
+endif
+endif
