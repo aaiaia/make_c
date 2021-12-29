@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../llist.h"
+
+#include <dataType/llist.h>
 
 void _PRINT_LLIST_S(s_llist* _s)
 {

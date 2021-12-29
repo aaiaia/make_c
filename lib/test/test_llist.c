@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../llist.h"
 
-#include "testLib_llist.h"
+#include <dataType/llist.h>
+
+#include <testLib_llist.h>
 
 int main(int argc, char** argv)
 {
