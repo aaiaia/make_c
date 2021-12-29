@@ -25,7 +25,7 @@ struct linked_list
     void*                   object;
     void                    (*fp_rmObj)(void** p);
     void*                   info;
-    void                    (*fp_rmInfo)(void** p)
+    void                    (*fp_rmInfo)(void** p);
 };
 typedef struct linked_list s_llist;
 
