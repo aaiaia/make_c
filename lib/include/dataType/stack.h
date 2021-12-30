@@ -1,6 +1,7 @@
 #ifndef _STACK_H_
 #define _STACK_H_
-#include "llist.h"
+
+#include <dataType/llist.h>
 
 struct stack_data
 {

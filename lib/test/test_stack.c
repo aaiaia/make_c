@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../stack.h"
 
-#include "testLib_llist.h"
+#include <dataType/stack.h>
+
+#include <testLib_llist.h>
 
 int main(int argc, char* argv[])
 {

@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "llist.h"
-#include "stack.h"
+
+#include <dataType/llist.h>
+#include <dataType/stack.h>
 
 s_stack_data* make_stack(void)
 {
