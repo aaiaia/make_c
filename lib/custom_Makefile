@@ -1,0 +1,157 @@
+CC = gcc
+AR = ar         # Static Library Archiving tools. The GNU ar program creates, modifies, and extracts from archives.
+RANLIB = ranlib # ranlib generates an index to the contents of an archive and stores it in the archive.
+RM = rm
+MV = mv
+MKDIR = mkdir
+MAKE = make
+LN = ln
+###########################
+##### Release Version #####
+###########################
+OBJS_DIR_NAME = debug
+###########################
+######### Library #########
+###########################
+LIB_SRC_DIR_NAME = src
+
+LIB_SRCS := $(subst ./,,$(shell find -L ./$(LIB_SRC_DIR_NAME) -type f \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.s" \) ))
+$(info LIB_SRCS = ${LIB_SRCS})
+#LIB_ITEMS = $(patsubst %.c,%,$(subst $(LIB_SRC_DIR_NAME)/,,$(LIB_SRCS)))
+LIB_ITEMS = $(patsubst %.c,%,$(LIB_SRCS))
+$(info LIB_ITEMS = ${LIB_ITEMS})
+#LIB_OBJS := $(patsubst %.c,%.o,$(subst $(LIB_SRC_DIR_NAME),$(OBJS_DIR_NAME),$(LIB_SRCS)))
+LIB_OBJS := $(LIB_SRCS:%.c=$(OBJS_DIR_NAME)/%.o)
+$(info LIB_OBJS = ${LIB_OBJS})
+
+LIB_INC_DIRS = -Iinclude
+$(info LIB_INC_DIRS = ${LIB_INC_DIRS})
+
+LIB_DEPEND_FILE = $(OBJS_DIR_NAME)/depend_file_lib
+###########################
+###### Applications #######
+###########################
+APP_SRC_DIR_NAME = app
+
+APP_SRCS := $(subst ./,,$(shell find -L ./$(APP_SRC_DIR_NAME) -type f \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.s" \) ))
+$(info APP_SRCS = ${APP_SRCS})
+#APP_ITEMS = $(patsubst %.c,%,$(subst $(APP_SRC_DIR_NAME)/,,$(APP_SRCS)))
+APP_ITEMS = $(patsubst %.c,%,$(APP_SRCS))
+$(info APP_ITEMS = ${APP_ITEMS})
+#APP_OBJS := $(patsubst %.c,%.o,$(subst $(APP_SRC_DIR_NAME),$(OBJS_DIR_NAME),$(APP_SRCS)))
+APP_OBJS := $(APP_SRCS:%.c=$(OBJS_DIR_NAME)/%.o)
+$(info APP_OBJS = ${APP_OBJS})
+
+APP_INC_DIRS = -I$(APP_SRC_DIR_NAME) $(LIB_INC_DIRS)
+$(info APP_INC_DIRS = ${APP_INC_DIRS})
+
+APP_DEPEND_FILE = $(OBJS_DIR_NAME)/depend_file_app
+###########################
+#### Include to Library####
+###########################
+
+###########################
+#### Outputs & Target #####
+###########################
+OUTPUT_DIR = out
+OUTPUT_ITEMS = 
+###########################
+###########################
+###########################
+
+#.SUFFIXES : .c .o
+
+###########################
+###########################
+###########################
+depend : $(LIB_DEPEND_FILE) $(APP_DEPEND_FILE)
+depend_lib : $(LIB_DEPEND_FILE)
+depend_app : $(APP_DEPEND_FILE)
+
+$(LIB_DEPEND_FILE) :
+	@`[ -d $(OBJS_DIR_NAME) ] || $(MKDIR) -p $(OBJS_DIR_NAME)`
+	@$(RM) -f $(OBJS_DIR_NAME)/depend_file_lib
+	@echo "==================================================="
+	@echo "Abstract Library Source Dependency"
+	@echo "==================================================="
+	@for ITEM in $(LIB_ITEMS); do \
+        echo "item: $$ITEM, src: $$ITEM.c, obj: $(OBJS_DIR_NAME)/$$ITEM.o"; \
+		$(CC) -MM -MT $(OBJS_DIR_NAME)/$$ITEM.o $$ITEM.c $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(LIB_INC_DIRS) >> $(LIB_DEPEND_FILE); \
+	done
+	@echo "LIB_DEPEND_FILE: $(LIB_DEPEND_FILE)"
+	@echo "==================================================="
+	@echo "Done"
+	@echo "==================================================="
+
+$(APP_DEPEND_FILE) :
+	@`[ -d $(OBJS_DIR_NAME) ] || $(MKDIR) -p $(OBJS_DIR_NAME)`
+	@$(RM) -f $(OBJS_DIR_NAME)/depend_file_app
+	@echo "==================================================="
+	@echo "Abstract Library Source Dependency"
+	@echo "==================================================="
+	@for ITEM in $(APP_ITEMS); do \
+        echo "item: $$ITEM, src: $$ITEM.c, obj: $(OBJS_DIR_NAME)/$$ITEM.o"; \
+		$(CC) -MM -MT $(OBJS_DIR_NAME)/$$ITEM.o $$ITEM.c $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(APP_INC_DIRS) >> $(APP_DEPEND_FILE); \
+	done
+	@echo "APP_DEPEND_FILE: $(APP_DEPEND_FILE)"
+	@echo "==================================================="
+	@echo "Done"
+	@echo "==================================================="
+
+$(OBJS_DIR_NAME)/lib/basic.a : $(LIB_OBJS)
+	@echo "==================================================="
+	@echo "= TARGET: $@"
+	@echo "= Depends: $(LIB_OBJS)"
+	@echo "= location: $(dir $@)"
+	@echo "==================================================="
+	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
+ifeq ($(IS_SHARED),1)
+	$(CC) -shared -Wl,-soname,$(SHARED_SO_NAME) -o $@ $(LIB_OBJS)
+	$(LN) -fs $(SHARED_REAL_NAME) $(SHARED_SO_NAME)
+	$(LN) -fs $(SHARED_SO_NAME) lib$(LIB_NAME).so
+	$(MV) $(SHARED_SO_NAME) lib$(LIB_NAME).so $(ROOT_LIB_DIR)/$(OBJS_DIR)/
+else
+	$(AR) rcv $@ $(LIB_OBJS)
+	$(RANLIB) $@
+endif
+	@echo "==================================================="
+	@echo "Done"
+	@echo "==================================================="
+
+lib : $(OBJS_DIR_NAME)/lib/basic.a $(LIB_DEPEND_FILE)
+
+app : lib $(APP_OBJS) $(APP_DEPEND_FILE)
+
+all : app
+
+clean:
+	@echo "==================================================="
+	@echo "= TARGET: $@"
+	@echo "==================================================="
+	$(RM) -rf $(OBJS_DIR_NAME)
+	@echo "==================================================="
+	@echo "Done"
+	@echo "==================================================="
+
+%.o :
+	@echo "==================================================="
+	@echo "= Compile: $@"
+	@echo "= Source(1st depend. file): $<"
+	@echo "= location: $(dir $@)"
+	@echo "==================================================="
+	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
+	$(if $(findstring $<, $(APP_SRCS)), \
+		$(CC) $(CFLAGS) $(DBG_FLAGS) $(APP_INC_DIRS) -c $< -o $@, \
+		$(CC) $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(LIB_INC_DIRS) -c $< -o $@)
+	@echo "==================================================="
+	@echo "Done"
+	@echo "==================================================="
+
+%:
+	@echo "==================================================="
+	@echo "= TARGET: $@"
+	@echo "==================================================="
+
+-include $(LIB_DEPEND_FILE)
+-include $(APP_DEPEND_FILE)
+
