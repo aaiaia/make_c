@@ -15,18 +15,20 @@ $(info LIB_FULL_NAME = ${LIB_FULL_NAME})
 #LIB_OBJS = $(TEMP:%.c=%.o)
 LIB_ITEMS = $(patsubst %.c,%,$(subst $(ROOT_SRC_DIR)/, , $(LIB_SRCS)))
 $(info LIB_ITEMS = $(LIB_ITEMS))
-LIB_OBJS = $(patsubst %.c,%.o,$(subst $(ROOT_SRC_DIR), $(OBJS_DIR), $(LIB_SRCS)))
+#LIB_OBJS = $(patsubst %.c,%.o,$(subst $(ROOT_SRC_DIR), $(OBJS_DIR), $(LIB_SRCS)))
+LIB_OBJS = $(patsubst %.c,%.o,$(subst $(ROOT_SRC_DIR), $(OBJS_DIR_NAME), $(LIB_SRCS)))
 $(info LIB_OBJS = ${LIB_OBJS})
  
 ALL_LIBS = -l$(LIB_NAME) $(DEPEND_LIBS) $(LIBS)
 $(info ALL_LIBS = ${ALL_LIBS})
 
-TARGET_ITEMS = $(patsubst %.c,%,$(subst $(ROOT_TRG_DIR)/, , $(TARGET_SRCS)))
-$(info TARGET_ITEMS = $(TARGET_ITEMS))
-TARGET_OBJS = $(patsubst %.c,%.o,$(subst $(ROOT_TRG_DIR), $(OBJS_DIR), $(TARGET_SRCS)))
-$(info TARGET_OBJS = ${TARGET_OBJS})
-TARGET_NAMES = $(TARGET_ITEMS:%=$(ROOT_OUT_DIR)/%)
-$(info TARGET_NAMES = ${TARGET_NAMES})
+APP_ITEMS = $(patsubst %.c,%,$(subst $(ROOT_APP_DIR)/, , $(APP_SRCS)))
+$(info APP_ITEMS = $(APP_ITEMS))
+#APP_OBJS = $(patsubst %.c,%.o,$(subst $(ROOT_APP_DIR), $(OBJS_DIR), $(APP_SRCS)))
+APP_OBJS = $(patsubst %.c,%.o,$(subst $(ROOT_APP_DIR), $(OBJS_DIR_NAME), $(APP_SRCS)))
+$(info APP_OBJS = ${APP_OBJS})
+APP_NAMES = $(APP_ITEMS:%=$(ROOT_OUT_DIR)/%)
+$(info APP_NAMES = ${APP_NAMES})
  
 .SUFFIXES : .c .o
  
@@ -48,17 +50,22 @@ liball : $(LIB_FULL_NAME)
 	@echo "liball"
 	@echo "==================================================="
 	@for dir in $(SUB_DIRS); do \
+		echo "dir loc is $$dir"
 		$(MAKE) -C $$dir liball; \
 		if [ $$? != 0 ]; then exit 1; fi; \
 	done
  
-targets : $(TARGET_NAMES)
+targets : $(APP_NAMES)
  
-$(LIB_FULL_NAME) : $(LIB_OBJS)
+#$(LIB_FULL_NAME) : $(LIB_OBJS)
+$(LIB_FULL_NAME) : $(OBJS_DIR)/$(LIB_ITEMS).o
 	@echo "==================================================="
-	@echo "LIB_FULL_NAME"
+	@echo "LIB_FULL_NAME, $(LIB_FULL_NAME)"
+	@echo "condition1(LIB_OBJS): $(LIB_OBJS)"
+	@echo "condition2: $(OBJS_DIR)/$(LIB_ITEMS).o"
 	@echo "==================================================="
-	@`[ -d $(ROOT_LIB_DIR)/$(OBJS_DIR) ] || $(MKDIR) -p $(ROOT_LIB_DIR)/$(OBJS_DIR)`
+	@echo "loc. $(ROOT_LIB_DIR)/$(OBJS_DIR_NAME)"
+	@`[ -d $(ROOT_LIB_DIR)/$(OBJS_DIR_NAME) ] || $(MKDIR) -p $(ROOT_LIB_DIR)/$(OBJS_DIR_NAME)`
 ifeq ($(IS_SHARED),1)
 	$(CC) -shared -Wl,-soname,$(SHARED_SO_NAME) -o $@ $(LIB_OBJS)
 	$(LN) -fs $(SHARED_REAL_NAME) $(SHARED_SO_NAME)
@@ -69,17 +76,22 @@ else
 	$(RANLIB) $@
 endif
  
-$(OBJS_DIR)/%.o : %.c
+#$(OBJS_DIR)/%.o : %.c
+#$(OBJS_DIR)/$(LIB_ITEMS).o : $(ROOT_SRC_DIR)/$(LIB_ITEMS).c
+$(OBJS_DIR_NAME)/$(LIB_ITEMS).o : $(SRC_DIR_NAME)/$(LIB_ITEMS).c
 	@echo "==================================================="
 	@echo "= Compiling $@"
+	@echo "= Source $<"
 	@echo "==================================================="
-	@`[ -d $(OBJS_DIR) ] || $(MKDIR) -p $(OBJS_DIR)`
-	$(if $(findstring $<, $(TARGET_SRCS)), \
-		$(CC) $(CFLAGS) $(DBG_FLAGS) $(INC_DIRS) -c $< -o $@, \
+	@echo "loc. $(dir $(OBJS_DIR)/$(LIB_ITEMS).o)"
+	@`[ -d $(dir $(OBJS_DIR)/$(LIB_ITEMS).o) ] || $(MKDIR) -p $(dir $(OBJS_DIR)/$(LIB_ITEMS).o)`
+	@echo "findstring $(findstring $<, $(APP_SRCS))"
+	$(if $(findstring $<, $(APP_SRCS)), \
+		$(CC) $(CFLAGS) $(DBG_FLAGS) $(INC_DIRS) -c $< -o $@.o, \
 		$(CC) $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(INC_DIRS) -c $< -o $@)
  
 .SECONDEXPANSION:
-$(TARGET_NAMES): $$@.o
+$(APP_NAMES): $$@.o
 	@echo "==================================================="
 	@echo "= Linking $@"
 	@echo "==================================================="
@@ -98,9 +110,9 @@ depend :
 		$(CC) -MM -MT $(OBJS_DIR)/$$ITEM.o $(ROOT_SRC_DIR)/$$ITEM.c $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(INC_DIRS) >> $(DEPEND_FILE); \
 	done
 	@echo "Abstract Target Source Dependency"
-	@for ITEM in $(TARGET_ITEMS); do \
-        echo "item: $$ITEM, src: $(PROJ_ROOT)/$$ITEM.c, obj: $(OBJS_DIR)/$$ITEM.o"; \
-		$(CC) -MM -MT $(OBJS_DIR)/$$ITEM.o $(ROOT_TRG_DIR)/$$ITEM.c $(CFLAGS) $(DBG_FLAGS) $(INC_DIRS) >> $(DEPEND_FILE); \
+	@for ITEM in $(APP_ITEMS); do \
+        echo "item: $$ITEM, src: $(ROOT_APP_DIR)/$$ITEM.c, obj: $(OBJS_DIR)/$$ITEM.o"; \
+		$(CC) -MM -MT $(OBJS_DIR)/$$ITEM.o $(ROOT_APP_DIR)/$$ITEM.c $(CFLAGS) $(DBG_FLAGS) $(INC_DIRS) >> $(DEPEND_FILE); \
 	done
 	@echo "DEPEND_FILE: $(DEPEND_FILE)"
  
@@ -122,14 +134,14 @@ cleanall : clean
 		if [ $$? != 0 ]; then exit 1; fi; \
 	done
  
-$(TARGET_NAMES) : $(LIB_FULL_NAME) \
+$(APP_NAMES) : $(LIB_FULL_NAME) \
 	$(patsubst -l%, $(wildcard %.*), $(DEPEND_LIBS))
  
 ifneq ($(MAKECMDGOALS), clean)
 ifneq ($(MAKECMDGOALS), cleanall)
 ifneq ($(MAKECMDGOALS), depend)
 ifneq ($(MAKECMDGOALS), dependall)
-ifneq ($(strip $(LIB_SRCS) $(TARGET_SRCS)),)
+ifneq ($(strip $(LIB_SRCS) $(APP_SRCS)),)
 -include $(DEPEND_FILE)
 endif
 endif
