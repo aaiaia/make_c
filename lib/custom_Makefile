@@ -53,8 +53,12 @@ APP_DEPEND_FILE = $(OBJS_DIR_NAME)/depend_file_app
 ###########################
 #### Outputs & Target #####
 ###########################
-OUTPUT_DIR = out
-OUTPUT_ITEMS = 
+OUTPUT_DIR_NAME = out
+
+OUTPUT_ITEMS = $(APP_OBJS:%.o=%)
+$(info OUTPUT_ITEMS = $(OUTPUT_ITEMS))
+OUTPUTS = $(OUTPUT_ITEMS:%=$(OUTPUT_DIR_NAME)/%)
+$(info OUTPUTS = ${OUTPUTS})
 ###########################
 ###########################
 ###########################
@@ -120,7 +124,7 @@ endif
 
 lib : $(OBJS_DIR_NAME)/lib/basic.a $(LIB_DEPEND_FILE)
 
-app : lib $(APP_OBJS) $(APP_DEPEND_FILE)
+app : $(OUTPUTS) lib $(APP_OBJS) $(APP_DEPEND_FILE)
 
 all : app
 
@@ -130,7 +134,7 @@ clean:
 	@echo "==================================================="
 	$(RM) -rf $(OBJS_DIR_NAME)
 	@echo "==================================================="
-	@echo "Done"
+	@echo "= $@: Done"
 	@echo "==================================================="
 
 %.o :
@@ -144,7 +148,21 @@ clean:
 		$(CC) $(CFLAGS) $(DBG_FLAGS) $(APP_INC_DIRS) -c $< -o $@, \
 		$(CC) $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(LIB_INC_DIRS) -c $< -o $@)
 	@echo "==================================================="
-	@echo "Done"
+	@echo "= $@: Done"
+	@echo "==================================================="
+
+.SECONDEXPANSION:
+$(OUTPUT_DIR_NAME)/% : $(APP_OBJS)
+	@echo "==================================================="
+	@echo "= Linking: $@"
+	@echo "==================================================="
+ifeq ($(LIBS_CYCLING_DEPEND),1)
+	$(CC) -o $@ $@ $(LIB_DIRS) -Wl,-\( $(ALL_LIBS) -Wl,-\)
+else
+	$(CC) -o $@ $@ $(LIB_DIRS) $(ALL_LIBS)
+endif
+	@echo "==================================================="
+	@echo "= $@: Done"
 	@echo "==================================================="
 
 %:
