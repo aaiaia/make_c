@@ -47,10 +47,6 @@ $(info APP_INC_DIRS = ${APP_INC_DIRS})
 
 APP_DEPEND_FILE = $(OBJS_DIR_NAME)/depend_file_app
 ###########################
-#### Include to Library####
-###########################
-
-###########################
 #### Outputs & Target #####
 ###########################
 OUTPUT_DIR_NAME = out
@@ -59,6 +55,14 @@ OUTPUT_ITEMS = $(APP_OBJS:%.o=%)
 $(info OUTPUT_ITEMS = $(OUTPUT_ITEMS))
 OUTPUTS = $(OUTPUT_ITEMS:%=$(OUTPUT_DIR_NAME)/%)
 $(info OUTPUTS = ${OUTPUTS})
+###########################
+#### Include to Library####
+###########################
+INC_LIB_PATH = -L$(dir $(OBJS_DIR_NAME)/lib/libbasic.a)
+$(info INC_LIB_PATH = $(INC_LIB_PATH))
+
+INC_LIB_NAME = -l$(patsubst lib%.a,%,$(notdir $(OBJS_DIR_NAME)/lib/libbasic.a))
+$(info INC_LIB_NAME = $(INC_LIB_NAME))
 ###########################
 ###########################
 ###########################
@@ -102,7 +106,7 @@ $(APP_DEPEND_FILE) :
 	@echo "Done"
 	@echo "==================================================="
 
-$(OBJS_DIR_NAME)/lib/basic.a : $(LIB_OBJS)
+$(OBJS_DIR_NAME)/lib/libbasic.a : $(LIB_OBJS)
 	@echo "==================================================="
 	@echo "= TARGET: $@"
 	@echo "= Depends: $(LIB_OBJS)"
@@ -122,7 +126,7 @@ endif
 	@echo "Done"
 	@echo "==================================================="
 
-lib : $(OBJS_DIR_NAME)/lib/basic.a $(LIB_DEPEND_FILE)
+lib : $(OBJS_DIR_NAME)/lib/libbasic.a $(LIB_DEPEND_FILE)
 
 app : $(OUTPUTS) lib $(APP_OBJS) $(APP_DEPEND_FILE)
 
@@ -152,14 +156,16 @@ clean:
 	@echo "==================================================="
 
 .SECONDEXPANSION:
-$(OUTPUT_DIR_NAME)/% : $(APP_OBJS)
+$(OUTPUT_DIR_NAME)/% : lib $(APP_OBJS)
 	@echo "==================================================="
 	@echo "= Linking: $@"
+	@echo "= Source1: $(patsubst $(OUTPUT_DIR_NAME)/%,%.o,$@)"
 	@echo "==================================================="
+	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
 ifeq ($(LIBS_CYCLING_DEPEND),1)
 	$(CC) -o $@ $@ $(LIB_DIRS) -Wl,-\( $(ALL_LIBS) -Wl,-\)
 else
-	$(CC) -o $@ $@ $(LIB_DIRS) $(ALL_LIBS)
+	$(CC) -o $@ $(patsubst $(OUTPUT_DIR_NAME)/%,%.o,$@) $(INC_LIB_PATH) $(INC_LIB_NAME)
 endif
 	@echo "==================================================="
 	@echo "= $@: Done"
