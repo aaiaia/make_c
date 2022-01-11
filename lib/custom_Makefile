@@ -41,7 +41,7 @@ $(info LIB_INC_DIRS = ${LIB_INC_DIRS})
 
 LIB_DEPEND_FILE = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_lib
 ###########################
-##### Library Outputs #####
+##### Library Config ######
 ###########################
 LIB_NAME = basic
 $(info LIB_NAME = ${LIB_NAME})
@@ -165,7 +165,7 @@ app : $(OUTPUTS)
 
 all : app
 
-clean:
+clean :
 	@echo "==================================================="
 	@echo "= TARGET: $@"
 	@echo "==================================================="
@@ -175,7 +175,7 @@ clean:
 	@echo "= $@: Done"
 	@echo "==================================================="
 
-%.o :
+$(OBJS_DIR_NAME)/%.o :
 	@echo "==================================================="
 	@echo "= Compile: $@"
 	@echo "= Source(1st depend. file): $<"
