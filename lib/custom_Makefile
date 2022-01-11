@@ -7,15 +7,27 @@ MKDIR = mkdir
 MAKE = make
 LN = ln
 ###########################
+###### Configuration ######
+###########################
+
+###### Library Conf. ######
+IS_SHARED = # 1
+MAJOR_VERSION = 1# 1
+MINOR_VERSION = 0# 0
+
+#### Depend file prefix ###
+DEPEND_FILE_PREFIX = depend_file
+
+###########################
 ##### Release Version #####
 ###########################
 OBJS_DIR_NAME = debug
 ###########################
-######### Library #########
+### Library Srcs & Objs ###
 ###########################
 LIB_SRC_DIR_NAME = src
 
-LIB_SRCS := $(subst ./,,$(shell find -L ./$(LIB_SRC_DIR_NAME) -type f \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.s" \) ))
+LIB_SRCS := $(subst ./,,$(shell find -L ./$(LIB_SRC_DIR_NAME) -type f \( -iname "*.c" -o -iname "*.s" \) ))
 $(info LIB_SRCS = ${LIB_SRCS})
 #LIB_ITEMS = $(patsubst %.c,%,$(subst $(LIB_SRC_DIR_NAME)/,,$(LIB_SRCS)))
 LIB_ITEMS = $(patsubst %.c,%,$(LIB_SRCS))
@@ -27,13 +39,37 @@ $(info LIB_OBJS = ${LIB_OBJS})
 LIB_INC_DIRS = -Iinclude
 $(info LIB_INC_DIRS = ${LIB_INC_DIRS})
 
-LIB_DEPEND_FILE = $(OBJS_DIR_NAME)/depend_file_lib
+LIB_DEPEND_FILE = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_lib
 ###########################
-###### Applications #######
+##### Library Outputs #####
+###########################
+LIB_NAME = basic
+$(info LIB_NAME = ${LIB_NAME})
+
+# Set variable to share library
+ifeq ($(IS_SHARED),1)
+SHARED_FLAGS = -fPIC
+$(info SHARED_FLAGS = ${SHARED_FLAGS})
+LIB_FULL_NAME = lib$(LIB_NAME).so.$(MAJOR_VERSION).$(MINOR_VERSION)
+$(info LIB_FULL_NAME = ${LIB_FULL_NAME})
+
+LIB_OUTPUT_ITEMS =
+else
+SHARED_FLAGS =
+$(info SHARED_FLAGS = ${SHARED_FLAGS})
+
+LIB_FULL_NAME = lib$(LIB_NAME).a
+$(info LIB_FULL_NAME = ${LIB_FULL_NAME})
+
+LIB_OUTPUT_ITEMS =
+endif
+$(info LIB_OUTPUT_ITEMS = $(LIB_OUTPUT_ITEMS))
+###########################
+##### App Srcs & Objs #####
 ###########################
 APP_SRC_DIR_NAME = app
 
-APP_SRCS := $(subst ./,,$(shell find -L ./$(APP_SRC_DIR_NAME) -type f \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.s" \) ))
+APP_SRCS := $(subst ./,,$(shell find -L ./$(APP_SRC_DIR_NAME) -type f \( -iname "*.c" -o -iname "*.s" \) ))
 $(info APP_SRCS = ${APP_SRCS})
 #APP_ITEMS = $(patsubst %.c,%,$(subst $(APP_SRC_DIR_NAME)/,,$(APP_SRCS)))
 APP_ITEMS = $(patsubst %.c,%,$(APP_SRCS))
@@ -45,7 +81,7 @@ $(info APP_OBJS = ${APP_OBJS})
 APP_INC_DIRS = -I$(APP_SRC_DIR_NAME) $(LIB_INC_DIRS)
 $(info APP_INC_DIRS = ${APP_INC_DIRS})
 
-APP_DEPEND_FILE = $(OBJS_DIR_NAME)/depend_file_app
+APP_DEPEND_FILE = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_app
 ###########################
 #### Outputs & Target #####
 ###########################
@@ -58,10 +94,10 @@ $(info OUTPUTS = ${OUTPUTS})
 ###########################
 #### Include to Library####
 ###########################
-INC_LIB_PATH = -L$(dir $(OBJS_DIR_NAME)/lib/libbasic.a)
+INC_LIB_PATH = -L$(dir $(OBJS_DIR_NAME)/lib/$(LIB_FULL_NAME))
 $(info INC_LIB_PATH = $(INC_LIB_PATH))
 
-INC_LIB_NAME = -l$(patsubst lib%.a,%,$(notdir $(OBJS_DIR_NAME)/lib/libbasic.a))
+INC_LIB_NAME = -l$(patsubst lib%.a,%,$(LIB_FULL_NAME))
 $(info INC_LIB_NAME = $(INC_LIB_NAME))
 ###########################
 ###########################
@@ -78,7 +114,7 @@ depend_app : $(APP_DEPEND_FILE)
 
 $(LIB_DEPEND_FILE) :
 	@`[ -d $(OBJS_DIR_NAME) ] || $(MKDIR) -p $(OBJS_DIR_NAME)`
-	@$(RM) -f $(OBJS_DIR_NAME)/depend_file_lib
+	@$(RM) -f $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_lib
 	@echo "==================================================="
 	@echo "Abstract Library Source Dependency"
 	@echo "==================================================="
@@ -93,7 +129,7 @@ $(LIB_DEPEND_FILE) :
 
 $(APP_DEPEND_FILE) :
 	@`[ -d $(OBJS_DIR_NAME) ] || $(MKDIR) -p $(OBJS_DIR_NAME)`
-	@$(RM) -f $(OBJS_DIR_NAME)/depend_file_app
+	@$(RM) -f $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_app
 	@echo "==================================================="
 	@echo "Abstract Library Source Dependency"
 	@echo "==================================================="
@@ -106,18 +142,15 @@ $(APP_DEPEND_FILE) :
 	@echo "Done"
 	@echo "==================================================="
 
-$(OBJS_DIR_NAME)/lib/libbasic.a : $(LIB_OBJS)
+$(OBJS_DIR_NAME)/lib/lib% : $(LIB_OBJS)
 	@echo "==================================================="
-	@echo "= TARGET: $@"
+	@echo "= Make Library: $@"
 	@echo "= Depends: $(LIB_OBJS)"
 	@echo "= location: $(dir $@)"
 	@echo "==================================================="
 	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
 ifeq ($(IS_SHARED),1)
-	$(CC) -shared -Wl,-soname,$(SHARED_SO_NAME) -o $@ $(LIB_OBJS)
-	$(LN) -fs $(SHARED_REAL_NAME) $(SHARED_SO_NAME)
-	$(LN) -fs $(SHARED_SO_NAME) lib$(LIB_NAME).so
-	$(MV) $(SHARED_SO_NAME) lib$(LIB_NAME).so $(ROOT_LIB_DIR)/$(OBJS_DIR)/
+	$(CC) -shared -Wl,-soname,$(LIB_FULL_NAME) -o $@ $(LIB_OBJS)
 else
 	$(AR) rcv $@ $(LIB_OBJS)
 	$(RANLIB) $@
@@ -126,9 +159,9 @@ endif
 	@echo "Done"
 	@echo "==================================================="
 
-lib : $(OBJS_DIR_NAME)/lib/libbasic.a $(LIB_DEPEND_FILE)
+lib : $(OBJS_DIR_NAME)/lib/$(LIB_FULL_NAME) $(LIB_DEPEND_FILE)
 
-app : $(OUTPUTS) lib $(APP_OBJS) $(APP_DEPEND_FILE)
+app : $(OUTPUTS)
 
 all : app
 
@@ -137,6 +170,7 @@ clean:
 	@echo "= TARGET: $@"
 	@echo "==================================================="
 	$(RM) -rf $(OBJS_DIR_NAME)
+	$(RM) -rf $(OUTPUT_DIR_NAME)
 	@echo "==================================================="
 	@echo "= $@: Done"
 	@echo "==================================================="
@@ -155,11 +189,11 @@ clean:
 	@echo "= $@: Done"
 	@echo "==================================================="
 
-.SECONDEXPANSION:
+#.SECONDEXPANSION:
 $(OUTPUT_DIR_NAME)/% : lib $(APP_OBJS)
 	@echo "==================================================="
 	@echo "= Linking: $@"
-	@echo "= Source1: $(patsubst $(OUTPUT_DIR_NAME)/%,%.o,$@)"
+	@echo "= Object file: $(patsubst $(OUTPUT_DIR_NAME)/%,%.o,$@)"
 	@echo "==================================================="
 	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
 ifeq ($(LIBS_CYCLING_DEPEND),1)
@@ -173,9 +207,16 @@ endif
 
 %:
 	@echo "==================================================="
-	@echo "= TARGET: $@"
+	@echo "= TARGET: $@, Do nothing"
 	@echo "==================================================="
 
+ifneq ($(MAKECMDGOALS), clean)
+ifneq ($(MAKECMDGOALS), cleanall)
+ifneq ($(MAKECMDGOALS), depend)
+ifneq ($(MAKECMDGOALS), dependall)
 -include $(LIB_DEPEND_FILE)
 -include $(APP_DEPEND_FILE)
-
+endif
+endif
+endif
+endif
