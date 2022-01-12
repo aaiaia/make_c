@@ -112,7 +112,7 @@ depend : $(LIB_DEPEND_FILE) $(APP_DEPEND_FILE)
 depend_lib : $(LIB_DEPEND_FILE)
 depend_app : $(APP_DEPEND_FILE)
 
-$(LIB_DEPEND_FILE) :
+$(LIB_DEPEND_FILE) : $(LIB_SRCS)
 	@`[ -d $(OBJS_DIR_NAME) ] || $(MKDIR) -p $(OBJS_DIR_NAME)`
 	@$(RM) -f $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_lib
 	@echo "==================================================="
@@ -127,7 +127,7 @@ $(LIB_DEPEND_FILE) :
 	@echo "Done"
 	@echo "==================================================="
 
-$(APP_DEPEND_FILE) :
+$(APP_DEPEND_FILE) : $(APP_SRCS)
 	@`[ -d $(OBJS_DIR_NAME) ] || $(MKDIR) -p $(OBJS_DIR_NAME)`
 	@$(RM) -f $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_app
 	@echo "==================================================="
