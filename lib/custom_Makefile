@@ -11,7 +11,6 @@ LN = ln
 ###########################
 
 ###### Library Conf. ######
-IS_SHARED = # 1
 MAJOR_VERSION = 1# 1
 MINOR_VERSION = 0# 0
 
@@ -83,6 +82,13 @@ $(info APP_INC_DIRS = ${APP_INC_DIRS})
 
 DEPEND_FILE_APP = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_app
 ###########################
+### Application Config ####
+###########################
+# blank = compile using object
+# static = compile use static library
+# shared = compile use shared library
+APP_USE_LIB_MODE =
+###########################
 #### Outputs & Target #####
 ###########################
 OUT_DIR_NAME = out
@@ -115,6 +121,17 @@ $(info INC_LIB_NAMES = $(INC_LIB_NAMES))
 ###########################
 ###########################
 ###########################
+test :
+ifeq ($(APP_USE_LIB_MODE),)
+	@echo "APP_USE_LIB_MODE: blank"
+else ifeq ($(APP_USE_LIB_MODE),static)
+	@echo "APP_USE_LIB_MODE: $(APP_USE_LIB_MODE)"
+else ifeq ($(APP_USE_LIB_MODE),shared)
+	@echo "APP_USE_LIB_MODE: $(APP_USE_LIB_MODE)"
+else
+	@echo "APP_USE_LIB_MODE: unknown"
+endif
+
 all : app
 
 depend : depend_lib depend_app 
