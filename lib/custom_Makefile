@@ -85,27 +85,27 @@ DEPEND_FILE_APP = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_app
 ###########################
 #### Outputs & Target #####
 ###########################
-OUTPUT_DIR_NAME = out
-# Config for Lib
-OUT_LIB_DIR = $(OUTPUT_DIR_NAME)/$(OBJS_DIR_NAME)/$(LIB_DIR_NAME)
+OUT_DIR_NAME = out
+##### Config for Lib #####
+OUT_LIB_DIR = $(OUT_DIR_NAME)/$(OBJS_DIR_NAME)/$(LIB_DIR_NAME)
 $(info OUT_LIB_DIR = $(OUT_LIB_DIR))
 OUT_LIB_PATH_STATIC = $(OUT_LIB_DIR)/$(STATIC_LIB_NAME)
 $(info OUT_LIB_PATH_STATIC = $(OUT_LIB_PATH_STATIC))
 OUT_LIB_PATH_SHARED = $(OUT_LIB_DIR)/$(SHARED_LIB_NAME)
 $(info OUT_LIB_PATH_SHARED = $(OUT_LIB_PATH_SHARED))
-# Config for App
+##### Config for App #####
 OUT_ITEMS_APP = $(APP_OBJS:%.o=%)
 $(info OUT_ITEMS_APP = $(OUT_ITEMS_APP))
-OUT_APP = $(OUT_ITEMS_APP:%=$(OUTPUT_DIR_NAME)/%)
+OUT_APP = $(OUT_ITEMS_APP:%=$(OUT_DIR_NAME)/%)
 $(info OUT_APP = ${OUT_APP})
 ###########################
 #### Include to Library####
 ###########################
-INC_LIB_PATH = -L$(OUT_LIB_DIR)	# Have to review "LIB_FULL_NAME"
+INC_LIB_PATH = -L$(OUT_LIB_DIR)
 $(info INC_LIB_PATH = $(INC_LIB_PATH))
 
-INC_LIB_NAME = -l$(patsubst lib%.a,%,$(LIB_FULL_NAME))	# Have to review "LIB_FULL_NAME"
-$(info INC_LIB_NAME = $(INC_LIB_NAME))
+INC_LIB_NAMES = -l$(patsubst lib%.a,%,$(LIB_NAME))
+$(info INC_LIB_NAMES = $(INC_LIB_NAMES))
 ###########################
 ###########################
 ###########################
@@ -150,7 +150,8 @@ $(DEPEND_FILE_APP) : $(APP_SRCS)
 	@echo "Done"
 	@echo "==================================================="
 
-$(OUT_LIB_DIR)/lib%.$(STATIC_LIB_EXT) : $(LIB_OBJS)
+#$(OUT_LIB_DIR)/lib%.$(STATIC_LIB_EXT) : $(LIB_OBJS)
+$(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
 	@echo "==================================================="
 	@echo "= Make Static Library"
 	@echo "= Target: $@"
@@ -164,7 +165,8 @@ $(OUT_LIB_DIR)/lib%.$(STATIC_LIB_EXT) : $(LIB_OBJS)
 	@echo "Done"
 	@echo "==================================================="
 
-$(OUT_LIB_DIR)/lib%.$(SHARED_LIB_EXT) : $(LIB_OBJS)
+#$(OUT_LIB_DIR)/lib%.$(SHARED_LIB_EXT) : $(LIB_OBJS)
+$(OUT_LIB_PATH_SHARED) : $(LIB_OBJS)
 	@echo "==================================================="
 	@echo "= Make Shared Library"
 	@echo "= Target: $@"
@@ -190,7 +192,7 @@ clean :
 	@echo "= TARGET: $@"
 	@echo "==================================================="
 	$(RM) -rf $(OBJS_DIR_NAME)
-	$(RM) -rf $(OUTPUT_DIR_NAME)
+	$(RM) -rf $(OUT_DIR_NAME)
 	@echo "==================================================="
 	@echo "= $@: Done"
 	@echo "==================================================="
@@ -205,21 +207,24 @@ $(OBJS_DIR_NAME)/%.o :
 	$(if $(findstring $<, $(APP_SRCS)), \
 		$(CC) $(CFLAGS) $(DBG_FLAGS) $(APP_INC_DIRS) -c $< -o $@, \
 		$(CC) $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(LIB_INC_DIRS) -c $< -o $@)
+	$(if $(findstring $<, $(APP_SRCS)), \
+		echo "TRUE", \
+		echo "FALSE")
 	@echo "==================================================="
 	@echo "= $@: Done"
 	@echo "==================================================="
 
 #.SECONDEXPANSION:
-$(OUTPUT_DIR_NAME)/% : lib $(APP_OBJS)
+$(OUT_DIR_NAME)/% : lib $(APP_OBJS)
 	@echo "==================================================="
 	@echo "= Linking: $@"
-	@echo "= Object file: $(patsubst $(OUTPUT_DIR_NAME)/%,%.o,$@)"
+	@echo "= Object file: $(patsubst $(OUT_DIR_NAME)/%,%.o,$@)"
 	@echo "==================================================="
 	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
 ifeq ($(LIBS_CYCLING_DEPEND),1)
 	$(CC) -o $@ $@ $(LIB_DIRS) -Wl,-\( $(ALL_LIBS) -Wl,-\)
 else
-	$(CC) -o $@ $(patsubst $(OUTPUT_DIR_NAME)/%,%.o,$@) $(INC_LIB_PATH) $(INC_LIB_NAME)
+	$(CC) -o $@ $(patsubst $(OUT_DIR_NAME)/%,%.o,$@) $(INC_LIB_PATH) $(INC_LIB_NAMES)
 endif
 	@echo "==================================================="
 	@echo "= $@: Done"
