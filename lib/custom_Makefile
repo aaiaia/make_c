@@ -39,31 +39,31 @@ $(info LIB_OBJS = ${LIB_OBJS})
 LIB_INC_DIRS = -Iinclude
 $(info LIB_INC_DIRS = ${LIB_INC_DIRS})
 
-LIB_DEPEND_FILE = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_lib
+DEPEND_FILE_LIB = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_lib
 ###########################
 ##### Library Config ######
 ###########################
 LIB_NAME = basic
 $(info LIB_NAME = ${LIB_NAME})
+LIB_DIR_NAME = lib
 
-# Set variable to share library
-ifeq ($(IS_SHARED),1)
+# Set variable to static librarya
+STATIC_LIB_KEYWD = static
+STATIC_LIB_EXT = a
+STATIC_LIB_NAME = lib$(LIB_NAME).$(STATIC_LIB_EXT)
+$(info STATIC_LIB_NAME = ${STATIC_LIB_NAME})
+
+STATIC_LIB_DEPEND_FILE = $(DEPEND_FILE_LIB).$(STATIC_LIB_KEYWD)
+
+# Set variable to shared library
+SHARED_LIB_KEYWD = shared
 SHARED_FLAGS = -fPIC
 $(info SHARED_FLAGS = ${SHARED_FLAGS})
-LIB_FULL_NAME = lib$(LIB_NAME).so.$(MAJOR_VERSION).$(MINOR_VERSION)
-$(info LIB_FULL_NAME = ${LIB_FULL_NAME})
+SHARED_LIB_EXT = so.$(MAJOR_VERSION).$(MINOR_VERSION)
+SHARED_LIB_NAME = lib$(LIB_NAME).$(SHARED_LIB_EXT)
+$(info SHARED_LIB_NAME = ${SHARED_LIB_NAME})
 
-LIB_OUTPUT_ITEMS =
-else
-SHARED_FLAGS =
-$(info SHARED_FLAGS = ${SHARED_FLAGS})
-
-LIB_FULL_NAME = lib$(LIB_NAME).a
-$(info LIB_FULL_NAME = ${LIB_FULL_NAME})
-
-LIB_OUTPUT_ITEMS =
-endif
-$(info LIB_OUTPUT_ITEMS = $(LIB_OUTPUT_ITEMS))
+SHARED_LIB_DEPEND_FILE = $(DEPEND_FILE_LIB).$(SHARED_LIB_KEYWD)
 ###########################
 ##### App Srcs & Objs #####
 ###########################
@@ -81,24 +81,31 @@ $(info APP_OBJS = ${APP_OBJS})
 APP_INC_DIRS = -I$(APP_SRC_DIR_NAME) $(LIB_INC_DIRS)
 $(info APP_INC_DIRS = ${APP_INC_DIRS})
 
-APP_DEPEND_FILE = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_app
+DEPEND_FILE_APP = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_app
 ###########################
 #### Outputs & Target #####
 ###########################
-OUTPUT_DIR_NAME = out
-
-OUTPUT_ITEMS = $(APP_OBJS:%.o=%)
-$(info OUTPUT_ITEMS = $(OUTPUT_ITEMS))
-OUTPUTS = $(OUTPUT_ITEMS:%=$(OUTPUT_DIR_NAME)/%)
-$(info OUTPUTS = ${OUTPUTS})
+OUT_DIR_NAME = out
+##### Config for Lib #####
+OUT_LIB_DIR = $(OUT_DIR_NAME)/$(OBJS_DIR_NAME)/$(LIB_DIR_NAME)
+$(info OUT_LIB_DIR = $(OUT_LIB_DIR))
+OUT_LIB_PATH_STATIC = $(OUT_LIB_DIR)/$(STATIC_LIB_NAME)
+$(info OUT_LIB_PATH_STATIC = $(OUT_LIB_PATH_STATIC))
+OUT_LIB_PATH_SHARED = $(OUT_LIB_DIR)/$(SHARED_LIB_NAME)
+$(info OUT_LIB_PATH_SHARED = $(OUT_LIB_PATH_SHARED))
+##### Config for App #####
+OUT_ITEMS_APP = $(APP_OBJS:%.o=%)
+$(info OUT_ITEMS_APP = $(OUT_ITEMS_APP))
+OUT_APP = $(OUT_ITEMS_APP:%=$(OUT_DIR_NAME)/%)
+$(info OUT_APP = ${OUT_APP})
 ###########################
 #### Include to Library####
 ###########################
-INC_LIB_PATH = -L$(dir $(OBJS_DIR_NAME)/lib/$(LIB_FULL_NAME))
+INC_LIB_PATH = -L$(OUT_LIB_DIR)
 $(info INC_LIB_PATH = $(INC_LIB_PATH))
 
-INC_LIB_NAME = -l$(patsubst lib%.a,%,$(LIB_FULL_NAME))
-$(info INC_LIB_NAME = $(INC_LIB_NAME))
+INC_LIB_NAMES = -l$(patsubst lib%.a,%,$(LIB_NAME))
+$(info INC_LIB_NAMES = $(INC_LIB_NAMES))
 ###########################
 ###########################
 ###########################
@@ -108,73 +115,61 @@ $(info INC_LIB_NAME = $(INC_LIB_NAME))
 ###########################
 ###########################
 ###########################
-depend : $(LIB_DEPEND_FILE) $(APP_DEPEND_FILE)
-depend_lib : $(LIB_DEPEND_FILE)
-depend_app : $(APP_DEPEND_FILE)
-
-$(LIB_DEPEND_FILE) : $(LIB_SRCS)
-	@`[ -d $(OBJS_DIR_NAME) ] || $(MKDIR) -p $(OBJS_DIR_NAME)`
-	@$(RM) -f $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_lib
-	@echo "==================================================="
-	@echo "Abstract Library Source Dependency"
-	@echo "==================================================="
-	@for ITEM in $(LIB_ITEMS); do \
-        echo "item: $$ITEM, src: $$ITEM.c, obj: $(OBJS_DIR_NAME)/$$ITEM.o"; \
-		$(CC) -MM -MT $(OBJS_DIR_NAME)/$$ITEM.o $$ITEM.c $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(LIB_INC_DIRS) >> $(LIB_DEPEND_FILE); \
-	done
-	@echo "LIB_DEPEND_FILE: $(LIB_DEPEND_FILE)"
-	@echo "==================================================="
-	@echo "Done"
-	@echo "==================================================="
-
-$(APP_DEPEND_FILE) : $(APP_SRCS)
-	@`[ -d $(OBJS_DIR_NAME) ] || $(MKDIR) -p $(OBJS_DIR_NAME)`
-	@$(RM) -f $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_app
-	@echo "==================================================="
-	@echo "Abstract Library Source Dependency"
-	@echo "==================================================="
-	@for ITEM in $(APP_ITEMS); do \
-        echo "item: $$ITEM, src: $$ITEM.c, obj: $(OBJS_DIR_NAME)/$$ITEM.o"; \
-		$(CC) -MM -MT $(OBJS_DIR_NAME)/$$ITEM.o $$ITEM.c $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(APP_INC_DIRS) >> $(APP_DEPEND_FILE); \
-	done
-	@echo "APP_DEPEND_FILE: $(APP_DEPEND_FILE)"
-	@echo "==================================================="
-	@echo "Done"
-	@echo "==================================================="
-
-$(OBJS_DIR_NAME)/lib/lib% : $(LIB_OBJS)
-	@echo "==================================================="
-	@echo "= Make Library: $@"
-	@echo "= Depends: $(LIB_OBJS)"
-	@echo "= location: $(dir $@)"
-	@echo "==================================================="
-	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
-ifeq ($(IS_SHARED),1)
-	$(CC) -shared -Wl,-soname,$(LIB_FULL_NAME) -o $@ $(LIB_OBJS)
-else
-	$(AR) rcv $@ $(LIB_OBJS)
-	$(RANLIB) $@
-endif
-	@echo "==================================================="
-	@echo "Done"
-	@echo "==================================================="
-
-lib : $(OBJS_DIR_NAME)/lib/$(LIB_FULL_NAME) $(LIB_DEPEND_FILE)
-
-app : $(OUTPUTS)
-
 all : app
+
+depend : depend_lib depend_app 
+depend_lib : $(DEPEND_FILE_LIB)
+depend_app : $(DEPEND_FILE_APP)
+
+lib : lib_static lib_shared
+lib_static : depend_lib $(OUT_LIB_PATH_STATIC)
+lib_shared : depend_lib $(OUT_LIB_PATH_SHARED)
+
+app : depend_app lib $(OUT_APP)
 
 clean :
 	@echo "==================================================="
 	@echo "= TARGET: $@"
 	@echo "==================================================="
 	$(RM) -rf $(OBJS_DIR_NAME)
-	$(RM) -rf $(OUTPUT_DIR_NAME)
+	$(RM) -rf $(OUT_DIR_NAME)
 	@echo "==================================================="
 	@echo "= $@: Done"
 	@echo "==================================================="
 
+$(DEPEND_FILE_LIB) : $(LIB_SRCS)
+	@`[ -d $(OBJS_DIR_NAME) ] || $(MKDIR) -p $(OBJS_DIR_NAME)`
+	@$(RM) -f $@
+	@echo "==================================================="
+	@echo "= Abstract Library Source Dependency"
+	@echo "= Target: $@"
+	@echo "==================================================="
+	@for ITEM in $(LIB_ITEMS); do \
+        echo "item: $$ITEM, src: $$ITEM.c, obj: $(OBJS_DIR_NAME)/$$ITEM.o"; \
+		$(CC) -MM -MT $(OBJS_DIR_NAME)/$$ITEM.o $$ITEM.c $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(LIB_INC_DIRS) >> $@; \
+	done
+	@echo "==================================================="
+	@echo "Done"
+	@echo "==================================================="
+
+$(DEPEND_FILE_APP) : $(APP_SRCS)
+	@`[ -d $(OBJS_DIR_NAME) ] || $(MKDIR) -p $(OBJS_DIR_NAME)`
+	@$(RM) -f $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)_app
+	@echo "==================================================="
+	@echo "= Abstract Application Source Dependency"
+	@echo "= Target: $@"
+	@echo "==================================================="
+	@for ITEM in $(APP_ITEMS); do \
+        echo "item: $$ITEM, src: $$ITEM.c, obj: $(OBJS_DIR_NAME)/$$ITEM.o"; \
+		$(CC) -MM -MT $(OBJS_DIR_NAME)/$$ITEM.o $$ITEM.c $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(APP_INC_DIRS) >> $(DEPEND_FILE_APP); \
+	done
+	@echo "DEPEND_FILE_APP: $(DEPEND_FILE_APP)"
+	@echo "==================================================="
+	@echo "Done"
+	@echo "==================================================="
+
+##### General Rule ######################################
+##### Dependency is DEPEND_FILE_LIB DEPEND_FILE_APP #####
 $(OBJS_DIR_NAME)/%.o :
 	@echo "==================================================="
 	@echo "= Compile: $@"
@@ -189,17 +184,44 @@ $(OBJS_DIR_NAME)/%.o :
 	@echo "= $@: Done"
 	@echo "==================================================="
 
+$(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
+	@echo "==================================================="
+	@echo "= Make Static Library"
+	@echo "= Target: $@"
+	@echo "= Depends: $(LIB_OBJS)"
+	@echo "= location: $(dir $@)"
+	@echo "==================================================="
+	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
+	$(AR) rcv $@ $(LIB_OBJS)
+	$(RANLIB) $@
+	@echo "==================================================="
+	@echo "Done"
+	@echo "==================================================="
+
+$(OUT_LIB_PATH_SHARED) : $(LIB_OBJS)
+	@echo "==================================================="
+	@echo "= Make Shared Library"
+	@echo "= Target: $@"
+	@echo "= Depends: $(LIB_OBJS)"
+	@echo "= location: $(dir $@)"
+	@echo "==================================================="
+	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
+	$(CC) -shared -Wl,-soname,$(SHARED_LIB_NAME) -o $@ $(LIB_OBJS)
+	@echo "==================================================="
+	@echo "Done"
+	@echo "==================================================="
+
 #.SECONDEXPANSION:
-$(OUTPUT_DIR_NAME)/% : lib $(APP_OBJS)
+$(OUT_DIR_NAME)/% : $(APP_OBJS)
 	@echo "==================================================="
 	@echo "= Linking: $@"
-	@echo "= Object file: $(patsubst $(OUTPUT_DIR_NAME)/%,%.o,$@)"
+	@echo "= Object file: $(patsubst $(OUT_DIR_NAME)/%,%.o,$@)"
 	@echo "==================================================="
 	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
 ifeq ($(LIBS_CYCLING_DEPEND),1)
 	$(CC) -o $@ $@ $(LIB_DIRS) -Wl,-\( $(ALL_LIBS) -Wl,-\)
 else
-	$(CC) -o $@ $(patsubst $(OUTPUT_DIR_NAME)/%,%.o,$@) $(INC_LIB_PATH) $(INC_LIB_NAME)
+	$(CC) -o $@ $(patsubst $(OUT_DIR_NAME)/%,%.o,$@) $(INC_LIB_PATH) $(INC_LIB_NAMES)
 endif
 	@echo "==================================================="
 	@echo "= $@: Done"
@@ -211,11 +233,11 @@ endif
 	@echo "==================================================="
 
 ifneq ($(MAKECMDGOALS), clean)
-ifneq ($(MAKECMDGOALS), cleanall)
 ifneq ($(MAKECMDGOALS), depend)
-ifneq ($(MAKECMDGOALS), dependall)
--include $(LIB_DEPEND_FILE)
--include $(APP_DEPEND_FILE)
+ifneq ($(MAKECMDGOALS), depend_lib)
+ifneq ($(MAKECMDGOALS), depend_app)
+-include $(DEPEND_FILE_LIB)
+-include $(DEPEND_FILE_APP)
 endif
 endif
 endif
