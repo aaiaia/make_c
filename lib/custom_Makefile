@@ -115,9 +115,27 @@ $(info INC_LIB_NAMES = $(INC_LIB_NAMES))
 ###########################
 ###########################
 ###########################
-depend : $(DEPEND_FILE_LIB) $(DEPEND_FILE_APP)
+all : app
+
+depend : depend_lib depend_app 
 depend_lib : $(DEPEND_FILE_LIB)
 depend_app : $(DEPEND_FILE_APP)
+
+lib : lib_static lib_shared
+lib_static : depend_lib $(OUT_LIB_PATH_STATIC)
+lib_shared : depend_lib $(OUT_LIB_PATH_SHARED)
+
+app : depend_app lib $(OUT_APP)
+
+clean :
+	@echo "==================================================="
+	@echo "= TARGET: $@"
+	@echo "==================================================="
+	$(RM) -rf $(OBJS_DIR_NAME)
+	$(RM) -rf $(OUT_DIR_NAME)
+	@echo "==================================================="
+	@echo "= $@: Done"
+	@echo "==================================================="
 
 $(DEPEND_FILE_LIB) : $(LIB_SRCS)
 	@`[ -d $(OBJS_DIR_NAME) ] || $(MKDIR) -p $(OBJS_DIR_NAME)`
@@ -150,7 +168,22 @@ $(DEPEND_FILE_APP) : $(APP_SRCS)
 	@echo "Done"
 	@echo "==================================================="
 
-#$(OUT_LIB_DIR)/lib%.$(STATIC_LIB_EXT) : $(LIB_OBJS)
+##### General Rule ######################################
+##### Dependency is DEPEND_FILE_LIB DEPEND_FILE_APP #####
+$(OBJS_DIR_NAME)/%.o :
+	@echo "==================================================="
+	@echo "= Compile: $@"
+	@echo "= Source(1st depend. file): $<"
+	@echo "= location: $(dir $@)"
+	@echo "==================================================="
+	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
+	$(if $(findstring $<, $(APP_SRCS)), \
+		$(CC) $(CFLAGS) $(DBG_FLAGS) $(APP_INC_DIRS) -c $< -o $@, \
+		$(CC) $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(LIB_INC_DIRS) -c $< -o $@)
+	@echo "==================================================="
+	@echo "= $@: Done"
+	@echo "==================================================="
+
 $(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
 	@echo "==================================================="
 	@echo "= Make Static Library"
@@ -165,7 +198,6 @@ $(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
 	@echo "Done"
 	@echo "==================================================="
 
-#$(OUT_LIB_DIR)/lib%.$(SHARED_LIB_EXT) : $(LIB_OBJS)
 $(OUT_LIB_PATH_SHARED) : $(LIB_OBJS)
 	@echo "==================================================="
 	@echo "= Make Shared Library"
@@ -179,43 +211,8 @@ $(OUT_LIB_PATH_SHARED) : $(LIB_OBJS)
 	@echo "Done"
 	@echo "==================================================="
 
-lib_static : $(OUT_LIB_PATH_STATIC) $(DEPEND_FILE_LIB)
-lib_shared : $(OUT_LIB_PATH_SHARED) $(DEPEND_FILE_LIB)
-lib : lib_static lib_shared
-
-app : $(OUT_APP)
-
-all : app
-
-clean :
-	@echo "==================================================="
-	@echo "= TARGET: $@"
-	@echo "==================================================="
-	$(RM) -rf $(OBJS_DIR_NAME)
-	$(RM) -rf $(OUT_DIR_NAME)
-	@echo "==================================================="
-	@echo "= $@: Done"
-	@echo "==================================================="
-
-$(OBJS_DIR_NAME)/%.o :
-	@echo "==================================================="
-	@echo "= Compile: $@"
-	@echo "= Source(1st depend. file): $<"
-	@echo "= location: $(dir $@)"
-	@echo "==================================================="
-	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
-	$(if $(findstring $<, $(APP_SRCS)), \
-		$(CC) $(CFLAGS) $(DBG_FLAGS) $(APP_INC_DIRS) -c $< -o $@, \
-		$(CC) $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(LIB_INC_DIRS) -c $< -o $@)
-	$(if $(findstring $<, $(APP_SRCS)), \
-		echo "TRUE", \
-		echo "FALSE")
-	@echo "==================================================="
-	@echo "= $@: Done"
-	@echo "==================================================="
-
 #.SECONDEXPANSION:
-$(OUT_DIR_NAME)/% : lib $(APP_OBJS)
+$(OUT_DIR_NAME)/% : $(APP_OBJS)
 	@echo "==================================================="
 	@echo "= Linking: $@"
 	@echo "= Object file: $(patsubst $(OUT_DIR_NAME)/%,%.o,$@)"
@@ -236,9 +233,9 @@ endif
 	@echo "==================================================="
 
 ifneq ($(MAKECMDGOALS), clean)
-ifneq ($(MAKECMDGOALS), cleanall)
 ifneq ($(MAKECMDGOALS), depend)
-ifneq ($(MAKECMDGOALS), dependall)
+ifneq ($(MAKECMDGOALS), depend_lib)
+ifneq ($(MAKECMDGOALS), depend_app)
 -include $(DEPEND_FILE_LIB)
 -include $(DEPEND_FILE_APP)
 endif
