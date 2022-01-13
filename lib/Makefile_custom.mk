@@ -1,5 +1,15 @@
+# default C language make environment
 CC = gcc
+CFLAGS =		# gcc compile flags, when use compile and linking
+# default C++ language make environment
+CXX = g++
+CXXFLAGS =		# g++ compile flags
+CPPFLAGS =		# c++ compile flags
+# default shared library environments
+LDFLAGS =		# shared library flags(common used)
+# default other make environment
 AR = ar         # Static Library Archiving tools. The GNU ar program creates, modifies, and extracts from archives.
+# define Shell command to make variable
 RANLIB = ranlib # ranlib generates an index to the contents of an archive and stores it in the archive.
 RM = rm
 MV = mv
@@ -162,7 +172,7 @@ $(DEPEND_FILE_LIB) : $(LIB_SRCS)
 	@echo "= Target: $@"
 	@echo "==================================================="
 	@for ITEM in $(LIB_ITEMS); do \
-        echo "item: $$ITEM, src: $$ITEM.c, obj: $(OBJS_DIR_NAME)/$$ITEM.o"; \
+		echo "item: $$ITEM, src: $$ITEM.c, obj: $(OBJS_DIR_NAME)/$$ITEM.o"; \
 		$(CC) -MM -MT $(OBJS_DIR_NAME)/$$ITEM.o $$ITEM.c $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(LIB_INC_DIRS) >> $@; \
 	done
 	@echo "==================================================="
@@ -177,7 +187,7 @@ $(DEPEND_FILE_APP) : $(APP_SRCS)
 	@echo "= Target: $@"
 	@echo "==================================================="
 	@for ITEM in $(APP_ITEMS); do \
-        echo "item: $$ITEM, src: $$ITEM.c, obj: $(OBJS_DIR_NAME)/$$ITEM.o"; \
+		echo "item: $$ITEM, src: $$ITEM.c, obj: $(OBJS_DIR_NAME)/$$ITEM.o"; \
 		$(CC) -MM -MT $(OBJS_DIR_NAME)/$$ITEM.o $$ITEM.c $(CFLAGS) $(DBG_FLAGS) $(SHARED_FLAGS) $(APP_INC_DIRS) >> $(DEPEND_FILE_APP); \
 	done
 	@echo "DEPEND_FILE_APP: $(DEPEND_FILE_APP)"
