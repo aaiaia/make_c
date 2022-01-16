@@ -6,7 +6,7 @@ CXX = g++
 CXXFLAGS =		# g++ compile flags
 CPPFLAGS =		# c++ compile flags
 # default shared library environments
-LDFLAGS =		# shared library flags(common used)
+#LDFLAGS =		# shared library flags(common used)
 # default other make environment
 AR = ar         # Static Library Archiving tools. The GNU ar program creates, modifies, and extracts from archives.
 # define Shell command to make variable
@@ -16,6 +16,13 @@ MV = mv
 MKDIR = mkdir
 MAKE = make
 LN = ln
+
+ifeq ($(IS_SHARED),1)
+#LDFLAGS += -fPIC
+$(info LDFLAGS = %{LDFLAGS})
+else
+endif
+
 $(info ###########################)
 $(info ###### Configuration ######)
 $(info ###########################)
@@ -181,9 +188,13 @@ depend : depend_lib depend_app
 depend_lib : $(DEPEND_FILE_LIB)
 depend_app : $(DEPEND_FILE_APP)
 
-lib : lib_static lib_shared
-lib_static : depend_lib $(OUT_LIB_PATH_STATIC)
+ifeq ($(IS_SHARED),1)
+lib : lib_shared
 lib_shared : depend_lib $(OUT_LIB_PATH_SHARED)
+else
+lib : lib_static
+lib_static : depend_lib $(OUT_LIB_PATH_STATIC)
+endif
 
 app : depend_app lib $(OUT_APP)
 
@@ -241,12 +252,28 @@ $(OBJS_DIR_NAME)/%.o :
 	@echo "==================================================="
 	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
 	$(if $(findstring $<, $(APP_SRCS)), \
-		$(CC) $(CFLAGS) $(APP_INC_DIRS) -c $< -o $@, \
-		$(CC) $(CFLAGS) $(LIB_INC_DIRS) -c $< -o $@)
+		$(CC) $(CFLAGS) $(LDFLAGS) $(APP_INC_DIRS) -c $< -o $@, \
+		$(CC) $(CFLAGS) $(LDFLAGS) $(LIB_INC_DIRS) -c $< -o $@)
 	@echo "==================================================="
 	@echo "= $@: Done"
 	@echo "==================================================="
 
+ifeq ($(IS_SHARED),1)
+$(OUT_LIB_PATH_SHARED) : $(LIB_OBJS)
+	@echo "==================================================="
+	@echo "= Make Shared Library"
+	@echo "= Target: $@"
+	@echo "= Depends: $(LIB_OBJS)"
+	@echo "= location: $(dir $@)"
+	@echo "==================================================="
+	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
+	$(CC) -shared $(LDFLAGS) -Wl,-soname,$(SHARED_LIB_NAME) -o $@$(SHARED_LIB_NAME_VER_SUFFIX) $(LIB_OBJS)
+	$(LN) -fs $(SHARED_LIB_NAME_VER) $@
+	@echo "==================================================="
+	@echo "Done"
+	@echo "==================================================="
+
+else
 $(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
 	@echo "==================================================="
 	@echo "= Make Static Library"
@@ -261,20 +288,7 @@ $(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
 	@echo "Done"
 	@echo "==================================================="
 
-$(OUT_LIB_PATH_SHARED) : $(LIB_OBJS)
-	@echo "==================================================="
-	@echo "= Make Shared Library"
-	@echo "= Target: $@"
-	@echo "= Depends: $(LIB_OBJS)"
-	@echo "= location: $(dir $@)"
-	@echo "==================================================="
-	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
-	$(CC) -shared -Wl,-soname,$(SHARED_LIB_NAME) -o $@$(SHARED_LIB_NAME_VER_SUFFIX) $(LIB_OBJS)
-	$(LN) -fs $(SHARED_LIB_NAME_VER) $@
-	@echo "==================================================="
-	@echo "Done"
-	@echo "==================================================="
-
+endif
 $(OUT_DIR_NAME)/% : $(APP_OBJS)
 	@echo "==================================================="
 	@echo "= Linking: $@"
