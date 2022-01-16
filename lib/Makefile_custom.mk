@@ -16,25 +16,27 @@ MV = mv
 MKDIR = mkdir
 MAKE = make
 LN = ln
-###########################
-###### Configuration ######
-###########################
-
-###### Library Conf. ######
+$(info ###########################)
+$(info ###### Configuration ######)
+$(info ###########################)
+$(info ###### Library Conf. ######)
 MAJOR_VERSION = 1# 1
 MINOR_VERSION = 0# 0
 
-#### Depend file prefix ###
+$(info #### Depend file prefix ###)
 DEPEND_FILE_PREFIX = depend_file
+$(info DEPEND_FILE_PREFIX = ${DEPEND_FILE_PREFIX})
 
-###########################
-##### Release Version #####
-###########################
+$(info ###########################)
+$(info ##### Release Version #####)
+$(info ###########################)
 OBJS_DIR_NAME = debug
-###########################
-### Library Srcs & Objs ###
-###########################
+$(info OBJS_DIR_NAME = ${OBJS_DIR_NAME})
+$(info ###########################)
+$(info ### Library Srcs & Objs ###)
+$(info ###########################)
 LIB_SRC_DIR_NAME = src
+$(info LIB_SRC_DIR_NAME = ${LIB_SRC_DIR_NAME})
 
 LIB_SRCS := $(subst ./,,$(shell find -L ./$(LIB_SRC_DIR_NAME) -type f \( -iname "*.c" -o -iname "*.s" \) ))
 $(info LIB_SRCS = ${LIB_SRCS})
@@ -49,38 +51,46 @@ LIB_INC_DIRS = -Iinclude
 $(info LIB_INC_DIRS = ${LIB_INC_DIRS})
 
 DEPEND_FILE_POSTFIX_LIB = lib
-DEPEND_FILE_LIB = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX).$(DEPEND_FILE_POSTFIX_LIB)
-###########################
-##### Library Config ######
-###########################
+$(info DEPEND_FILE_POSTFIX_LIB = ${DEPEND_FILE_POSTFIX_LIB})
+DEPEND_FILE_LIB_SUFFIX = .$(DEPEND_FILE_POSTFIX_LIB)
+DEPEND_FILE_LIB = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)$(DEPEND_FILE_LIB_SUFFIX)
+$(info DEPEND_FILE_LIB = ${DEPEND_FILE_LIB})
+$(info ###########################)
+$(info ##### Library Config ######)
+$(info ###########################)
 LIB_NAME = basic
 $(info LIB_NAME = ${LIB_NAME})
 LIB_DIR_NAME = lib
+$(info LIB_DIR_NAME = ${LIB_DIR_NAME})
 
 COMMON_LIB_NAME = lib$(LIB_NAME)
-# Set variable to static library
+$(info # Set variable to static library)
 STATIC_LIB_KEYWD = static
+$(info STATIC_LIB_KEYWD = ${STATIC_LIB_KEYWD})
 STATIC_LIB_SUFFIX = .a
+$(info STATIC_LIB_SUFFIX = ${STATIC_LIB_SUFFIX})
 STATIC_LIB_NAME = $(COMMON_LIB_NAME)$(STATIC_LIB_SUFFIX)
 $(info STATIC_LIB_NAME = ${STATIC_LIB_NAME})
 
-STATIC_LIB_DEPEND_FILE = $(DEPEND_FILE_LIB).$(STATIC_LIB_KEYWD)
-
-# Set variable to shared library
+$(info # Set variable to shared library)
 SHARED_LIB_KEYWD = shared
+$(info SHARED_LIB_KEYWD = ${SHARED_LIB_KEYWD})
 SHARED_FLAGS = -fPIC
 $(info SHARED_FLAGS = ${SHARED_FLAGS})
 SHARED_LIB_SUFFIX = .so
+$(info SHARED_LIB_SUFFIX = ${SHARED_LIB_SUFFIX})
 SHARED_LIB_NAME = $(COMMON_LIB_NAME)$(SHARED_LIB_SUFFIX)
 $(info SHARED_LIB_NAME = ${SHARED_LIB_NAME})
 SHARED_LIB_NAME_VER_SUFFIX = .$(MAJOR_VERSION).$(MINOR_VERSION)
+$(info SHARED_LIB_NAME_VER_SUFFIX = ${SHARED_LIB_NAME_VER_SUFFIX})
 SHARED_LIB_NAME_VER = $(SHARED_LIB_NAME)$(SHARED_LIB_NAME_VER_SUFFIX)
+$(info SHARED_LIB_NAME_VER = ${SHARED_LIB_NAME_VER})
 
-SHARED_LIB_DEPEND_FILE = $(DEPEND_FILE_LIB).$(SHARED_LIB_KEYWD)
-###########################
-##### App Srcs & Objs #####
-###########################
+$(info ###########################)
+$(info ##### App Srcs & Objs #####)
+$(info ###########################)
 APP_SRC_DIR_NAME = app
+$(info APP_SRC_DIR_NAME = ${APP_SRC_DIR_NAME})
 
 APP_SRCS := $(subst ./,,$(shell find -L ./$(APP_SRC_DIR_NAME) -type f \( -iname "*.c" -o -iname "*.s" \) ))
 $(info APP_SRCS = ${APP_SRCS})
@@ -95,19 +105,24 @@ APP_INC_DIRS = -I$(APP_SRC_DIR_NAME) $(LIB_INC_DIRS)
 $(info APP_INC_DIRS = ${APP_INC_DIRS})
 
 DEPEND_FILE_POSTFIX_APP = app
-DEPEND_FILE_APP = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX).$(DEPEND_FILE_POSTFIX_APP)
-###########################
-### Application Config ####
-###########################
+$(info DEPEND_FILE_POSTFIX_APP = ${DEPEND_FILE_POSTFIX_APP})
+DEPEND_FILE_APP_SUFFIX = .$(DEPEND_FILE_POSTFIX_APP)
+DEPEND_FILE_APP = $(OBJS_DIR_NAME)/$(DEPEND_FILE_PREFIX)$(DEPEND_FILE_APP_SUFFIX)
+$(info DEPEND_FILE_APP = ${DEPEND_FILE_APP})
+$(info ###########################)
+$(info ### Application Config ####)
+$(info ###########################)
 # blank = compile using object
 # static = compile use static library
 # shared = compile use shared library
 APP_USE_LIB_MODE =
-###########################
-#### Outputs & Target #####
-###########################
+$(info APP_USE_LIB_MODE = ${APP_USE_LIB_MODE})
+$(info ###########################)
+$(info #### Outputs & Target #####)
+$(info ###########################)
 OUT_DIR_NAME = out
-##### Config for Lib #####
+$(info OUT_DIR_NAME = ${OUT_DIR_NAME})
+$(info ##### Config for Lib #####)
 OUT_LIB_DIR = $(OUT_DIR_NAME)/$(OBJS_DIR_NAME)/$(LIB_DIR_NAME)
 $(info OUT_LIB_DIR = $(OUT_LIB_DIR))
 OUT_LIB_PATH_STATIC = $(OUT_LIB_DIR)/$(STATIC_LIB_NAME)
@@ -115,22 +130,22 @@ $(info OUT_LIB_PATH_STATIC = $(OUT_LIB_PATH_STATIC))
 OUT_LIB_PATH_SHARED = $(OUT_LIB_DIR)/$(SHARED_LIB_NAME)
 $(info OUT_LIB_PATH_SHARED = $(OUT_LIB_PATH_SHARED))
 OUT_LIB_PATH_COMMON = $(OUT_LIB_DIR)/$(COMMON_LIB_NAME)
-##### Config for App #####
+$(info ##### Config for App #####)
 OUT_ITEMS_APP = $(APP_OBJS:%.o=%)
 $(info OUT_ITEMS_APP = $(OUT_ITEMS_APP))
 OUT_APP = $(OUT_ITEMS_APP:%=$(OUT_DIR_NAME)/%)
 $(info OUT_APP = ${OUT_APP})
-###########################
-#### Include to Library####
-###########################
+$(info ###########################)
+$(info #### Include to Library####)
+$(info ###########################)
 INC_LIB_PATH = -L$(OUT_LIB_DIR)
 $(info INC_LIB_PATH = $(INC_LIB_PATH))
 
 INC_LIB_NAMES = -l$(patsubst lib%.a,%,$(LIB_NAME))
 $(info INC_LIB_NAMES = $(INC_LIB_NAMES))
-###########################
-###########################
-###########################
+$(info ###########################)
+$(info ###########################)
+$(info ###########################)
 
 #.SUFFIXES : .c .o
 
@@ -214,8 +229,10 @@ $(DEPEND_FILE_APP) : $(APP_SRCS)
 	@echo "Done"
 	@echo "==================================================="
 
+#########################################################
 ##### General Rule ######################################
 ##### Dependency is DEPEND_FILE_LIB DEPEND_FILE_APP #####
+#########################################################
 $(OBJS_DIR_NAME)/%.o :
 	@echo "==================================================="
 	@echo "= Compile: $@"
@@ -269,6 +286,9 @@ $(OUT_DIR_NAME)/% : $(APP_OBJS)
 	@echo "= $@: Done"
 	@echo "==================================================="
 
+#########################################################
+##### Dummy rule ########################################
+#########################################################
 %:
 	@echo "==================================================="
 	@echo "= TARGET: $@, Do nothing"
