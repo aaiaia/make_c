@@ -18,8 +18,12 @@ MAKE = make
 LN = ln
 
 ifeq ($(IS_SHARED),1)
-#LDFLAGS += -fPIC
-$(info LDFLAGS = %{LDFLAGS})
+# Some gcc based compiler to needs this option to fast executint program when use shared library.
+$(info ###########################)
+$(info ###### Shared library #####)
+$(info ###########################)
+LDFLAGS += -fPIC
+$(info LDFLAGS = ${LDFLAGS})
 else
 endif
 
