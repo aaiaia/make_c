@@ -192,15 +192,31 @@ depend : depend_lib depend_app
 depend_lib : $(DEPEND_FILE_LIB)
 depend_app : $(DEPEND_FILE_APP)
 
-ifeq ($(IS_SHARED),1)
-lib : lib_shared
+lib : lib_shared lib_static
 lib_shared : depend_lib $(OUT_LIB_PATH_SHARED)
-else
-lib : lib_static
 lib_static : depend_lib $(OUT_LIB_PATH_STATIC)
+
+ifeq ($(IS_SHARED),1)
+lib_app_needs : lib_shared 
+else
+lib_app_needs : lib_static
 endif
 
-app : depend_app lib $(OUT_APP)
+lib_check :
+	@echo "==================================================="
+	@echo "= Check Library and Remove to conflict"
+ifeq ($(IS_SHARED),1)
+	@echo "= IS_SHARED: Enabled"
+	@echo "= Delete Target: $(OUT_LIB_PATH_STATIC)"
+	@`[ -e $(OUT_LIB_PATH_STATIC) ] || $(RM) $(OUT_LIB_PATH_STATIC)`
+else
+	@echo "= IS_SHARED: Disabled"
+	@echo "= Delete Target: $(OUT_LIB_PATH_SHARED)"
+	@`[ -e $(OUT_LIB_PATH_SHARED) ] || $(RM) $(OUT_LIB_PATH_SHARED)*`
+endif
+	@echo "==================================================="
+
+app : depend_app lib_check lib_app_needs $(OUT_APP)
 
 clean :
 	@echo "==================================================="
@@ -262,7 +278,6 @@ $(OBJS_DIR_NAME)/%.o :
 	@echo "= $@: Done"
 	@echo "==================================================="
 
-ifeq ($(IS_SHARED),1)
 $(OUT_LIB_PATH_SHARED) : $(LIB_OBJS)
 	@echo "==================================================="
 	@echo "= Make Shared Library"
@@ -277,7 +292,6 @@ $(OUT_LIB_PATH_SHARED) : $(LIB_OBJS)
 	@echo "Done"
 	@echo "==================================================="
 
-else
 $(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
 	@echo "==================================================="
 	@echo "= Make Static Library"
@@ -292,7 +306,6 @@ $(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
 	@echo "Done"
 	@echo "==================================================="
 
-endif
 $(OUT_DIR_NAME)/% : $(APP_OBJS)
 	@echo "==================================================="
 	@echo "= Linking: $@"
