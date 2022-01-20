@@ -206,17 +206,20 @@ lib_check :
 	@echo "==================================================="
 	@echo "= Check Library and Remove to conflict"
 ifeq ($(IS_SHARED),1)
-	@echo "= IS_SHARED: Enabled"
-	@echo "= Delete Target: $(OUT_LIB_PATH_STATIC)"
-	@`[ -e $(OUT_LIB_PATH_STATIC) ] || $(RM) $(OUT_LIB_PATH_STATIC)`
+	@
+	@if [ -e $(OUT_LIB_PATH_STATIC) ]; then \
+		$(RM) $(OUT_LIB_PATH_STATIC); \
+		echo "= Delete Target: $(OUT_LIB_PATH_STATIC)"; \
+	fi;
 else
-	@echo "= IS_SHARED: Disabled"
-	@echo "= Delete Target: $(OUT_LIB_PATH_SHARED)"
-	@`[ -e $(OUT_LIB_PATH_SHARED) ] || $(RM) $(OUT_LIB_PATH_SHARED)*`
+	@if [ -e $(OUT_LIB_PATH_SHARED) ]; then \
+		$(RM) $(OUT_LIB_PATH_SHARED)*; \
+		echo "= Delete Target: $(OUT_LIB_PATH_SHARED)"; \
+	fi;
 endif
 	@echo "==================================================="
 
-app : depend_app lib_check lib_app_needs $(OUT_APP)
+app : depend_app lib_check $(OUT_APP)
 
 clean :
 	@echo "==================================================="
@@ -306,7 +309,7 @@ $(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
 	@echo "Done"
 	@echo "==================================================="
 
-$(OUT_DIR_NAME)/% : $(APP_OBJS)
+$(OUT_DIR_NAME)/% : lib_app_needs $(APP_OBJS)
 	@echo "==================================================="
 	@echo "= Linking: $@"
 	@echo "= Object file: $(patsubst $(OUT_DIR_NAME)/%,%.o,$@)"
