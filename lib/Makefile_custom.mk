@@ -188,13 +188,11 @@ endif
 
 all : app
 
-depend : depend_lib depend_app 
-depend_lib : $(DEPEND_FILE_LIB)
-depend_app : $(DEPEND_FILE_APP)
+depend : $(DEPEND_FILE_LIB) $(depend_file_app)
 
 lib : lib_shared lib_static
-lib_shared : depend_lib $(OUT_LIB_PATH_SHARED)
-lib_static : depend_lib $(OUT_LIB_PATH_STATIC)
+lib_shared : $(DEPEND_FILE_LIB) $(OUT_LIB_PATH_SHARED)
+lib_static : $(DEPEND_FILE_LIB) $(OUT_LIB_PATH_STATIC)
 
 ifeq ($(IS_SHARED),1)
 lib_app_needs : lib_shared
@@ -218,7 +216,7 @@ else
 endif
 	@echo "==================================================="
 
-app : depend_app lib_check $(OUT_APP)
+app : lib_check $(OUT_APP)
 
 clean :
 	@echo "==================================================="
@@ -308,7 +306,7 @@ $(OUT_LIB_PATH_STATIC) : $(LIB_OBJS) # $(OUT_LIB_DIR)/$(STATIC_LIB_NAME)
 	@echo "= Done"
 	@echo "==================================================="
 
-$(OUT_DIR_NAME)/% : $(APP_OBJS) lib_app_needs # $(OUT_APP) = $(OUT_ITEMS_APP:%=$(OUT_DIR_NAME)/%)
+$(OUT_DIR_NAME)/% : lib_app_needs $(APP_OBJS) # $(OUT_APP) = $(OUT_ITEMS_APP:%=$(OUT_DIR_NAME)/%)
 	@echo "==================================================="
 	@echo "= Linking: $@"
 	@echo "= Object file: $(patsubst $(OUT_DIR_NAME)/%,%.o,$@)"
@@ -329,11 +327,7 @@ $(OUT_DIR_NAME)/% : $(APP_OBJS) lib_app_needs # $(OUT_APP) = $(OUT_ITEMS_APP:%=$
 
 ifneq ($(MAKECMDGOALS), clean)
 ifneq ($(MAKECMDGOALS), depend)
-ifneq ($(MAKECMDGOALS), depend_lib)
-ifneq ($(MAKECMDGOALS), depend_app)
 -include $(DEPEND_FILE_LIB)
 -include $(DEPEND_FILE_APP)
-endif
-endif
 endif
 endif
