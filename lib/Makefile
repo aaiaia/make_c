@@ -212,7 +212,7 @@ $(DEPEND_FILE_LIB) : $(LIB_SRCS)
 		$(CC) -MM -MT $(OBJS_DIR_NAME)/$$ITEM.o $$ITEM.c $(CFLAGS) $(LIB_INC_DIRS) >> $@; \
 	done
 	@echo "==================================================="
-	@echo "Done"
+	@echo "= $@: Done"
 	@echo "==================================================="
 
 $(DEPEND_FILE_APP) : $(APP_SRCS)
@@ -228,7 +228,7 @@ $(DEPEND_FILE_APP) : $(APP_SRCS)
 	done
 	@echo "DEPEND_FILE_APP: $(DEPEND_FILE_APP)"
 	@echo "==================================================="
-	@echo "Done"
+	@echo "= $@: Done"
 	@echo "==================================================="
 
 #########################################################
@@ -264,7 +264,7 @@ $(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
 	$(AR) rcv $@ $(LIB_OBJS)
 	$(RANLIB) $@
 	@echo "==================================================="
-	@echo "Done"
+	@echo "= $@: Done"
 	@echo "==================================================="
 
 $(OUT_LIB_PATH_SHARED) : $(LIB_OBJS)
@@ -278,7 +278,7 @@ $(OUT_LIB_PATH_SHARED) : $(LIB_OBJS)
 	$(CC) -shared -Wl,-soname,$(SHARED_LIB_NAME) -o $@$(SHARED_LIB_NAME_VER_SUFFIX) $(LIB_OBJS)
 	$(LN) -fs $(SHARED_LIB_NAME_VER) $@
 	@echo "==================================================="
-	@echo "Done"
+	@echo "= $@: Done"
 	@echo "==================================================="
 
 #########################################################
