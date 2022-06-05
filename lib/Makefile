@@ -140,6 +140,8 @@ OUT_LIB_PATH_STATIC = $(OUT_LIB_DIR)/$(STATIC_LIB_NAME)
 $(info OUT_LIB_PATH_STATIC = $(OUT_LIB_PATH_STATIC))
 OUT_LIB_PATH_SHARED = $(OUT_LIB_DIR)/$(SHARED_LIB_NAME)
 $(info OUT_LIB_PATH_SHARED = $(OUT_LIB_PATH_SHARED))
+OUT_LIB_PATH_SHARED_VER = $(OUT_LIB_DIR)/$(SHARED_LIB_NAME_VER)
+$(info OUT_LIB_PATH_SHARED_VER = $(OUT_LIB_PATH_SHARED_VER))
 OUT_LIB_PATH_COMMON = $(OUT_LIB_DIR)/$(COMMON_LIB_NAME)
 $(info ##### Config for App #####)
 OUT_ITEMS_APP = $(APP_OBJS:%.o=%)
@@ -186,7 +188,7 @@ ifeq ($(suffix $@),.test)
 	@echo "ifeq ((suffix @),.testExt) is true"
 endif
 
-all : app
+all : lib app
 
 depend : $(DEPEND_FILE_LIB) $(depend_file_app)
 
@@ -200,23 +202,47 @@ else
 lib_app_needs : lib_static
 endif
 
-lib_check :
+lib_backup :
 	@echo "==================================================="
-	@echo "= Check Library and Remove to conflict"
+	@echo "= Check Library and backup to avoid conflict"
 ifeq ($(IS_SHARED),1)
 	@if [ -e $(OUT_LIB_PATH_STATIC) ]; then \
-		$(RM) $(OUT_LIB_PATH_STATIC); \
-		echo "= Delete Target: $(OUT_LIB_PATH_STATIC)"; \
+		$(MV) $(OUT_LIB_PATH_STATIC) $(OUT_LIB_PATH_STATIC)_bak; \
+		echo "= Backup Target: $(OUT_LIB_PATH_STATIC) to $(OUT_LIB_PATH_STATIC)_bak"; \
 	fi;
 else
-	@if [ -e $(OUT_LIB_PATH_SHARED) ]; then \
-		$(RM) $(OUT_LIB_PATH_SHARED)*; \
-		echo "= Delete Target: $(OUT_LIB_PATH_SHARED)"; \
+#	@if [ -e $(OUT_LIB_PATH_SHARED) ]; then \
+#		$(MV) $(OUT_LIB_PATH_SHARED) $(OUT_LIB_PATH_SHARED)_bak; \
+#		echo "= Backup Target: $(OUT_LIB_PATH_SHARED) to $(OUT_LIB_PATH_SHARED)_bak"; \
+#	fi;
+	@if [ -e $(OUT_LIB_PATH_SHARED_VER) ]; then \
+		$(MV) $(OUT_LIB_PATH_SHARED_VER) $(OUT_LIB_PATH_SHARED_VER)_bak; \
+		echo "= Backup Target: $(OUT_LIB_PATH_SHARED_VER) to $(OUT_LIB_PATH_SHARED_VER)_bak"; \
 	fi;
 endif
 	@echo "==================================================="
 
-app : lib_check $(OUT_APP)
+lib_restore :
+	@echo "==================================================="
+	@echo "= Check Library and restore"
+ifeq ($(IS_SHARED),1)
+	@if [ -e $(OUT_LIB_PATH_STATIC)_bak ]; then \
+		$(MV) $(OUT_LIB_PATH_STATIC)_bak $(OUT_LIB_PATH_STATIC); \
+		echo "= Restore Target: $(OUT_LIB_PATH_STATIC)_bak to $(OUT_LIB_PATH_STATIC)"; \
+	fi;
+else
+#	@if [ -e $(OUT_LIB_PATH_SHARED)_bak ]; then \
+#		$(MV) $(OUT_LIB_PATH_SHARED)_bak $(OUT_LIB_PATH_SHARED); \
+#		echo "= Restore Target: $(OUT_LIB_PATH_SHARED)_bak to $(OUT_LIB_PATH_SHARED)"; \
+#	fi;
+	@if [ -e $(OUT_LIB_PATH_SHARED_VER)_bak ]; then \
+		$(MV) $(OUT_LIB_PATH_SHARED_VER)_bak $(OUT_LIB_PATH_SHARED_VER); \
+		echo "= Restore Target: $(OUT_LIB_PATH_SHARED_VER)_bak to $(OUT_LIB_PATH_SHARED_VER)"; \
+	fi;
+endif
+	@echo "==================================================="
+
+app : lib_backup $(OUT_APP) lib_restore
 
 clean :
 	@echo "==================================================="
