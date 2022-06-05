@@ -6,7 +6,7 @@ CXX = g++
 CXXFLAGS =		# g++ compile flags
 CPPFLAGS =		# c++ compile flags
 # default shared library environments
-LDFLAGS =		# shared library flags(common used)
+#LDFLAGS =		# shared library flags(common used)
 # default other make environment
 AR = ar         # Static Library Archiving tools. The GNU ar program creates, modifies, and extracts from archives.
 # define Shell command to make variable
@@ -16,6 +16,17 @@ MV = mv
 MKDIR = mkdir
 MAKE = make
 LN = ln
+
+ifeq ($(IS_SHARED),1)
+# Some gcc based compiler to needs this option to fast executint program when use shared library.
+$(info ###########################)
+$(info ###### Shared library #####)
+$(info ###########################)
+LDFLAGS += -fPIC
+$(info LDFLAGS = ${LDFLAGS})
+else
+endif
+
 $(info ###########################)
 $(info ###### Configuration ######)
 $(info ###########################)
@@ -129,6 +140,8 @@ OUT_LIB_PATH_STATIC = $(OUT_LIB_DIR)/$(STATIC_LIB_NAME)
 $(info OUT_LIB_PATH_STATIC = $(OUT_LIB_PATH_STATIC))
 OUT_LIB_PATH_SHARED = $(OUT_LIB_DIR)/$(SHARED_LIB_NAME)
 $(info OUT_LIB_PATH_SHARED = $(OUT_LIB_PATH_SHARED))
+OUT_LIB_PATH_SHARED_VER = $(OUT_LIB_DIR)/$(SHARED_LIB_NAME_VER)
+$(info OUT_LIB_PATH_SHARED_VER = $(OUT_LIB_PATH_SHARED_VER))
 OUT_LIB_PATH_COMMON = $(OUT_LIB_DIR)/$(COMMON_LIB_NAME)
 $(info ##### Config for App #####)
 OUT_ITEMS_APP = $(APP_OBJS:%.o=%)
@@ -175,19 +188,61 @@ ifeq ($(suffix $@),.test)
 	@echo "ifeq ((suffix @),.testExt) is true"
 endif
 
-all : app
+all : lib app
 
-depend : depend_lib depend_app 
-depend_lib : $(DEPEND_FILE_LIB)
-depend_app : $(DEPEND_FILE_APP)
+depend : $(DEPEND_FILE_LIB) $(depend_file_app)
 
-lib : lib_static lib_shared
-lib_static : depend_lib $(OUT_LIB_PATH_STATIC)
-lib_shared : depend_lib $(OUT_LIB_PATH_SHARED)
+lib : lib_shared lib_static
+lib_shared : $(DEPEND_FILE_LIB) $(OUT_LIB_PATH_SHARED)
+lib_static : $(DEPEND_FILE_LIB) $(OUT_LIB_PATH_STATIC)
 
-app : depend_app lib $(OUT_APP)
-app_static : depend_app remove_shared_lib lib_static $(OUT_APP)
-app_shared : depend_app remove_static_lib lib_shared $(OUT_APP)
+ifeq ($(IS_SHARED),1)
+lib_app_needs : lib_shared
+else
+lib_app_needs : lib_static
+endif
+
+lib_backup :
+	@echo "==================================================="
+	@echo "= Check Library and backup to avoid conflict"
+ifeq ($(IS_SHARED),1)
+	@if [ -e $(OUT_LIB_PATH_STATIC) ]; then \
+		$(MV) $(OUT_LIB_PATH_STATIC) $(OUT_LIB_PATH_STATIC)_bak; \
+		echo "= Backup Target: $(OUT_LIB_PATH_STATIC) to $(OUT_LIB_PATH_STATIC)_bak"; \
+	fi;
+else
+#	@if [ -e $(OUT_LIB_PATH_SHARED) ]; then \
+#		$(MV) $(OUT_LIB_PATH_SHARED) $(OUT_LIB_PATH_SHARED)_bak; \
+#		echo "= Backup Target: $(OUT_LIB_PATH_SHARED) to $(OUT_LIB_PATH_SHARED)_bak"; \
+#	fi;
+	@if [ -e $(OUT_LIB_PATH_SHARED_VER) ]; then \
+		$(MV) $(OUT_LIB_PATH_SHARED_VER) $(OUT_LIB_PATH_SHARED_VER)_bak; \
+		echo "= Backup Target: $(OUT_LIB_PATH_SHARED_VER) to $(OUT_LIB_PATH_SHARED_VER)_bak"; \
+	fi;
+endif
+	@echo "==================================================="
+
+lib_restore :
+	@echo "==================================================="
+	@echo "= Check Library and restore"
+ifeq ($(IS_SHARED),1)
+	@if [ -e $(OUT_LIB_PATH_STATIC)_bak ]; then \
+		$(MV) $(OUT_LIB_PATH_STATIC)_bak $(OUT_LIB_PATH_STATIC); \
+		echo "= Restore Target: $(OUT_LIB_PATH_STATIC)_bak to $(OUT_LIB_PATH_STATIC)"; \
+	fi;
+else
+#	@if [ -e $(OUT_LIB_PATH_SHARED)_bak ]; then \
+#		$(MV) $(OUT_LIB_PATH_SHARED)_bak $(OUT_LIB_PATH_SHARED); \
+#		echo "= Restore Target: $(OUT_LIB_PATH_SHARED)_bak to $(OUT_LIB_PATH_SHARED)"; \
+#	fi;
+	@if [ -e $(OUT_LIB_PATH_SHARED_VER)_bak ]; then \
+		$(MV) $(OUT_LIB_PATH_SHARED_VER)_bak $(OUT_LIB_PATH_SHARED_VER); \
+		echo "= Restore Target: $(OUT_LIB_PATH_SHARED_VER)_bak to $(OUT_LIB_PATH_SHARED_VER)"; \
+	fi;
+endif
+	@echo "==================================================="
+
+app : lib_backup $(OUT_APP) lib_restore
 
 clean :
 	@echo "==================================================="
@@ -196,7 +251,7 @@ clean :
 	$(RM) -rf $(OBJS_DIR_NAME)
 	$(RM) -rf $(OUT_DIR_NAME)
 	@echo "==================================================="
-	@echo "= $@: Done"
+	@echo "= Done"
 	@echo "==================================================="
 
 $(DEPEND_FILE_LIB) : $(LIB_SRCS)
@@ -212,7 +267,7 @@ $(DEPEND_FILE_LIB) : $(LIB_SRCS)
 		$(CC) -MM -MT $(OBJS_DIR_NAME)/$$ITEM.o $$ITEM.c $(CFLAGS) $(LIB_INC_DIRS) >> $@; \
 	done
 	@echo "==================================================="
-	@echo "= $@: Done"
+	@echo "= Done"
 	@echo "==================================================="
 
 $(DEPEND_FILE_APP) : $(APP_SRCS)
@@ -228,7 +283,7 @@ $(DEPEND_FILE_APP) : $(APP_SRCS)
 	done
 	@echo "DEPEND_FILE_APP: $(DEPEND_FILE_APP)"
 	@echo "==================================================="
-	@echo "= $@: Done"
+	@echo "= Done"
 	@echo "==================================================="
 
 #########################################################
@@ -243,17 +298,27 @@ $(OBJS_DIR_NAME)/%.o :
 	@echo "==================================================="
 	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
 	$(if $(findstring $<, $(APP_SRCS)), \
-		$(CC) $(CFLAGS) $(APP_INC_DIRS) -c $< -o $@, \
-		$(CC) $(CFLAGS) $(LIB_INC_DIRS) -c $< -o $@)
+		$(CC) $(CFLAGS) $(LDFLAGS) $(APP_INC_DIRS) -c $< -o $@, \
+		$(CC) $(CFLAGS) $(LDFLAGS) $(LIB_INC_DIRS) -c $< -o $@)
 	@echo "==================================================="
 	@echo "= $@: Done"
 	@echo "==================================================="
 
-#########################################################
-##### Make Library Rule #################################
-#########################################################
+$(OUT_LIB_PATH_SHARED) : $(LIB_OBJS) # $(OUT_LIB_DIR)/$(SHARED_LIB_NAME)
+	@echo "==================================================="
+	@echo "= Make Shared Library"
+	@echo "= Target: $@"
+	@echo "= Depends: $(LIB_OBJS)"
+	@echo "= location: $(dir $@)"
+	@echo "==================================================="
+	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
+	$(CC) -shared $(LDFLAGS) -Wl,-soname,$(SHARED_LIB_NAME) -o $@$(SHARED_LIB_NAME_VER_SUFFIX) $(LIB_OBJS)
+	$(LN) -fs $(SHARED_LIB_NAME_VER) $@
+	@echo "==================================================="
+	@echo "= Done"
+	@echo "==================================================="
 
-$(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
+$(OUT_LIB_PATH_STATIC) : $(LIB_OBJS) # $(OUT_LIB_DIR)/$(STATIC_LIB_NAME)
 	@echo "==================================================="
 	@echo "= Make Static Library"
 	@echo "= Target: $@"
@@ -264,30 +329,7 @@ $(OUT_LIB_PATH_STATIC) : $(LIB_OBJS)
 	$(AR) rcv $@ $(LIB_OBJS)
 	$(RANLIB) $@
 	@echo "==================================================="
-	@echo "= $@: Done"
-	@echo "==================================================="
-
-$(OUT_LIB_PATH_SHARED) : $(LIB_OBJS)
-	@echo "==================================================="
-	@echo "= Make Shared Library"
-	@echo "= Target: $@"
-	@echo "= Depends: $(LIB_OBJS)"
-	@echo "= location: $(dir $@)"
-	@echo "==================================================="
-	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
-	$(CC) -shared -Wl,-soname,$(SHARED_LIB_NAME) -o $@$(SHARED_LIB_NAME_VER_SUFFIX) $(LIB_OBJS)
-	$(LN) -fs $(SHARED_LIB_NAME_VER) $@
-	@echo "==================================================="
-	@echo "= $@: Done"
-	@echo "==================================================="
-
-#########################################################
-##### Remove Library Rule ###############################
-#########################################################
-
-remove_static_lib :
-	@echo "==================================================="
-	@echo "= TARGET: $@"
+	@echo "= Done"
 	@echo "==================================================="
 	@echo "= Is not implementated yet"
 	@echo "==================================================="
@@ -307,7 +349,7 @@ remove_shared_lib :
 ##### Linking Rule ######################################
 #########################################################
 
-$(OUT_DIR_NAME)/% : $(APP_OBJS)
+$(OUT_DIR_NAME)/% : lib_app_needs $(APP_OBJS) # $(OUT_APP) = $(OUT_ITEMS_APP:%=$(OUT_DIR_NAME)/%)
 	@echo "==================================================="
 	@echo "= Linking: $@"
 	@echo "= Object file: $(patsubst $(OUT_DIR_NAME)/%,%.o,$@)"
@@ -315,7 +357,7 @@ $(OUT_DIR_NAME)/% : $(APP_OBJS)
 	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
 	$(CC) -o $@ $(patsubst $(OUT_DIR_NAME)/%,%.o,$@) $(INC_LIB_PATH) $(INC_LIB_NAMES)
 	@echo "==================================================="
-	@echo "= $@: Done"
+	@echo "= Done"
 	@echo "==================================================="
 
 #########################################################
@@ -328,11 +370,7 @@ $(OUT_DIR_NAME)/% : $(APP_OBJS)
 
 ifneq ($(MAKECMDGOALS), clean)
 ifneq ($(MAKECMDGOALS), depend)
-ifneq ($(MAKECMDGOALS), depend_lib)
-ifneq ($(MAKECMDGOALS), depend_app)
 -include $(DEPEND_FILE_LIB)
 -include $(DEPEND_FILE_APP)
-endif
-endif
 endif
 endif
