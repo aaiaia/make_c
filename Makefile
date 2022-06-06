@@ -46,7 +46,7 @@ $(info OBJS_DIR_NAME = ${OBJS_DIR_NAME})
 $(info ###########################)
 $(info ### Library Srcs & Objs ###)
 $(info ###########################)
-LIB_SRC_DIR_NAME = src
+LIB_SRC_DIR_NAME = lib
 $(info LIB_SRC_DIR_NAME = ${LIB_SRC_DIR_NAME})
 
 LIB_SRCS := $(subst ./,,$(shell find -L ./$(LIB_SRC_DIR_NAME) -type f \( -iname "*.c" -o -iname "*.s" \) ))
@@ -58,7 +58,7 @@ $(info LIB_ITEMS = ${LIB_ITEMS})
 LIB_OBJS := $(LIB_SRCS:%.c=$(OBJS_DIR_NAME)/%.o)
 $(info LIB_OBJS = ${LIB_OBJS})
 
-LIB_INC_DIRS = -Iinclude
+LIB_INC_DIRS = -I${LIB_SRC_DIR_NAME}/include
 $(info LIB_INC_DIRS = ${LIB_INC_DIRS})
 
 DEPEND_FILE_POSTFIX_LIB = lib
