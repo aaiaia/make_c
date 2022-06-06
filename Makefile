@@ -242,7 +242,17 @@ else
 endif
 	@echo "==================================================="
 
-app : lib_backup $(OUT_APP) lib_restore
+lib_notice :
+	@echo "==================================================="
+ifeq ($(IS_SHARED),1)
+	@echo "= Set shell environements refer below sh command"
+	@echo "export LD_LIBRARY_PATH='$(CURDIR)/$(dir ${OUT_LIB_PATH_SHARED})':\044LD_LIBRARY_PATH"
+else
+	@echo "= Nothing to setup for running"
+endif
+	@echo "==================================================="
+
+app : lib_backup $(OUT_APP) lib_restore lib_notice
 
 clean :
 	@echo "==================================================="
