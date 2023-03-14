@@ -1,12 +1,12 @@
 # default C language make environment
 CC = gcc
-CFLAGS =		# gcc compile flags, when use compile and linking
+CFLAGS = 		# gcc compile flags, when use compile and linking
 # default C++ language make environment
 CXX = g++
 CXXFLAGS =		# g++ compile flags
 CPPFLAGS =		# c++ compile flags
 # default shared library environments
-#LDFLAGS =		# shared library flags(common used)
+LDFLAGS =		# linker flags
 # default other make environment
 AR = ar         # Static Library Archiving tools. The GNU ar program creates, modifies, and extracts from archives.
 # define Shell command to make variable
@@ -20,10 +20,10 @@ LN = ln
 ifeq ($(IS_SHARED),1)
 # Some gcc based compiler to needs this option to fast executint program when use shared library.
 $(info ###########################)
-$(info ###### Shared library #####)
+$(info ###### Compile Flags ######)
 $(info ###########################)
-LDFLAGS += -fPIC
-$(info LDFLAGS = ${LDFLAGS})
+CFLAGS += -fPIC
+$(info CFLAGS = ${CFLAGS})
 else
 endif
 
@@ -308,8 +308,8 @@ $(OBJS_DIR_NAME)/%.o :
 	@echo "==================================================="
 	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
 	$(if $(findstring $<, $(APP_SRCS)), \
-		$(CC) $(CFLAGS) $(LDFLAGS) $(APP_INC_DIRS) -c $< -o $@, \
-		$(CC) $(CFLAGS) $(LDFLAGS) $(LIB_INC_DIRS) -c $< -o $@)
+		$(CC) $(CFLAGS) $(APP_INC_DIRS) -c $< -o $@, \
+		$(CC) $(CFLAGS) $(LIB_INC_DIRS) -c $< -o $@)
 	@echo "==================================================="
 	@echo "= $@: Done"
 	@echo "==================================================="
@@ -322,7 +322,7 @@ $(OUT_LIB_PATH_SHARED) : $(LIB_OBJS) # $(OUT_LIB_DIR)/$(SHARED_LIB_NAME)
 	@echo "= location: $(dir $@)"
 	@echo "==================================================="
 	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
-	$(CC) -shared $(LDFLAGS) -Wl,-soname,$(SHARED_LIB_NAME) -o $@$(SHARED_LIB_NAME_VER_SUFFIX) $(LIB_OBJS)
+	$(CC) -shared -Wl,-soname,$(SHARED_LIB_NAME) -o $@$(SHARED_LIB_NAME_VER_SUFFIX) $(LIB_OBJS)
 	$(LN) -fs $(SHARED_LIB_NAME_VER) $@
 	@echo "==================================================="
 	@echo "= Done"
