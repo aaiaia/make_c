@@ -7,3 +7,6 @@ extern signed char      g_sc_test_var;
 extern signed short     g_ss_test_var;
 extern signed int       g_si_test_var;
 extern signed long      g_sl_test_var;
+
+void testIncreaseTestVar(void);
+void testDecreaseTestVar(void);
