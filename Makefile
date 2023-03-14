@@ -27,6 +27,15 @@ $(info CFLAGS = ${CFLAGS})
 else
 endif
 
+ifeq ($(MATH_LIB),1)
+LDFLAGS += -lm
+$(info ###########################)
+$(info ###### Linker Flags #*#####)
+$(info ###########################)
+$(info LDFLAGS = ${LDFLAGS})
+else
+endif
+
 $(info ###########################)
 $(info ###### Configuration ######)
 $(info ###########################)
@@ -365,7 +374,7 @@ $(OUT_DIR_NAME)/% : lib_app_needs $(APP_OBJS) # $(OUT_APP) = $(OUT_ITEMS_APP:%=$
 	@echo "= Object file: $(patsubst $(OUT_DIR_NAME)/%,%.o,$@)"
 	@echo "==================================================="
 	@`[ -d $(dir $@) ] || $(MKDIR) -p $(dir $@)`
-	$(CC) -o $@ $(patsubst $(OUT_DIR_NAME)/%,%.o,$@) $(INC_LIB_PATH) $(INC_LIB_NAMES)
+	$(CC) -o $@ $(patsubst $(OUT_DIR_NAME)/%,%.o,$@) $(INC_LIB_PATH) $(INC_LIB_NAMES) $(LDFLAGS)
 	@echo "==================================================="
 	@echo "= Done"
 	@echo "==================================================="
