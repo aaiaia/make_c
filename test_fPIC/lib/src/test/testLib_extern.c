@@ -10,6 +10,9 @@ signed short    g_ss_test_var = -10 ;
 signed int      g_si_test_var = -20 ;
 signed long     g_sl_test_var = -30L;
 
+signed int          l_si_test_var = 0;
+static signed int   ls_si_test_var = 0;
+
 void testIncreaseTestVar(void)
 {
     unsigned int i;
@@ -25,6 +28,9 @@ void testIncreaseTestVar(void)
         g_ss_test_var++;
         g_si_test_var++;
         g_sl_test_var++;
+
+        l_si_test_var++;
+        ls_si_test_var++;
     }
 }
 
@@ -43,5 +49,8 @@ void testDecreaseTestVar(void)
         g_ss_test_var++;
         g_si_test_var++;
         g_sl_test_var++;
+
+        l_si_test_var++;
+        ls_si_test_var++;
     }
 }
